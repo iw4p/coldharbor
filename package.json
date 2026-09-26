@@ -1,0 +1,23 @@
+{
+  "name": "glance",
+  "private": true,
+  "description": "Connect any MCP server, ask in plain words, and watch live widgets appear.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @glance/web dev",
+    "build": "pnpm --filter @glance/web build",
+    "doctor": "node scripts/doctor.ts",
+    "eval-router": "node scripts/eval-router.ts",
+    "typecheck": "tsc -p packages/core && tsc -p packages/source-kit && tsc -p sources/weather && tsc -p sources/markets && tsc -p sources/news && tsc -p apps/web",
+    "inspect": "npx @modelcontextprotocol/inspector"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "packageManager": "pnpm@11.8.0",
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.9"
+  }
+}

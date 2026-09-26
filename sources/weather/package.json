@@ -1,0 +1,10 @@
+{
+  "name": "@glance/source-weather",
+  "version": "0.1.0",
+  "description": "MCP server: weather forecasts and history for any city (Open-Meteo, no API key).",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "glance-weather": "./src/index.ts" },
+  "scripts": { "start": "node src/index.ts" },
+  "dependencies": { "@glance/source-kit": "workspace:*" }
+}

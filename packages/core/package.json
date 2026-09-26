@@ -1,0 +1,18 @@
+{
+  "name": "@glance/core",
+  "version": "0.1.0",
+  "description": "Glance core: the Frame contract, the engine, routers, LLM adapters and the MCP hub.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.9"
+  }
+}

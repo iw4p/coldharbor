@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+  - sources/*
+allowBuilds:
+  sharp: false
+  unrs-resolver: false

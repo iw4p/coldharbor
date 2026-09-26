@@ -1,0 +1,9 @@
+{
+  "router": { "type": "kev", "baseUrl": "http://127.0.0.1:8009" },
+  "llm": { "provider": "ollama", "model": "qwen3.5:latest" },
+  "mcpServers": {
+    "weather": { "command": "node", "args": ["sources/weather/src/index.ts"] },
+    "markets": { "command": "node", "args": ["sources/markets/src/index.ts"] },
+    "news": { "command": "node", "args": ["sources/news/src/index.ts"] }
+  }
+}
