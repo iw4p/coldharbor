@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fmtNumber, fmtTime, withUnit } from "../format.ts";
 
 export default function TableView({ frame }: { frame: Frame }) {
-  const fields = frame.fields.filter((f) => f.type !== "lat" && f.type !== "lon");
+  // Long text belongs in the details view, not in a cell.
+  const fields = frame.fields.filter((f) => f.type !== "lat" && f.type !== "lon" && f.type !== "text");
   const url = frame.fields.find((f) => f.type === "url")?.name;
   const cell = (f: (typeof fields)[number], v: unknown, row: Record<string, unknown>) => {
     if (f.type === "number") return fmtNumber(v as number);

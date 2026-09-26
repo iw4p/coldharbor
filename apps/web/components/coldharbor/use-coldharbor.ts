@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { EngineEvent, Focus, Frame, Tile, TraceStep } from "@coldharbor/core";
+import type { Args, EngineEvent, Focus, Frame, Tile, TraceStep } from "@coldharbor/core";
 
 export type Message =
   | { id: string; role: "user"; text: string }
@@ -9,20 +9,30 @@ export type Message =
       id: string;
       role: "run";
       message: string;
-      status: "running" | "done" | "error" | "clarify" | "said";
+      status: "running" | "done" | "error" | "clarify" | "confirm" | "cancelled" | "said";
       steps: TraceStep[];
       text?: string;
       clarify?: { question: string; options: { toolId: string; label: string; p: number }[] };
+      confirm?: { toolId: string; title: string; args: Args; readOnly: boolean };
       tileId?: string;
     };
 
 export interface Catalog {
   configPath?: string;
   servers: { name: string; state: string; error?: string; tools: string[] }[];
-  tools: { id: string; server: string; name: string; title: string; description: string }[];
+  tools: { id: string; server: string; name: string; title: string; description: string; readOnly: boolean; autoRun: boolean }[];
   widgets: { id: string; name: string; ask: string }[];
   router: { name: string; up: boolean };
   llm: { name: string; up: boolean };
+}
+
+export interface AskOptions {
+  /** The user picked a tool in a clarifying question. */
+  forceTool?: string;
+  /** The user approved a call that needed confirmation. */
+  confirmed?: { toolId: string; args: Args };
+  /** Continue an existing chat entry instead of starting a new one. */
+  replyTo?: string;
 }
 
 const STORE = "coldharbor:v1";
@@ -69,15 +79,15 @@ export function useColdHarbor() {
   const updateRun = (id: string, fn: (m: Extract<Message, { role: "run" }>) => Partial<Extract<Message, { role: "run" }>>) =>
     setMessages((ms) => ms.map((m) => (m.id === id && m.role === "run" ? { ...m, ...fn(m) } : m)));
 
-  const ask = useCallback(async (message: string, forceTool?: string, replyTo?: string) => {
+  const ask = useCallback(async (message: string, { forceTool, confirmed, replyTo }: AskOptions = {}) => {
     const focusTile = tiles.find((t) => t.id === focusId);
     const focus: Focus | undefined = focusTile && { tileId: focusTile.id, toolId: focusTile.toolId, args: focusTile.args, widget: focusTile.widget, frames: focusTile.frames };
     const runId = replyTo ?? uid();
-    if (replyTo) updateRun(runId, () => ({ status: "running", clarify: undefined }));
+    if (replyTo) updateRun(runId, () => ({ status: "running", clarify: undefined, confirm: undefined }));
     else setMessages((ms) => [...ms, { id: uid(), role: "user", text: message }, { id: runId, role: "run", message, status: "running", steps: [] }]);
     setBusy(true);
     try {
-      const res = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message, focus, forceTool }) });
+      const res = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message, focus, forceTool, confirmed }) });
       const reader = res.body!.getReader();
       const dec = new TextDecoder();
       let buf = "";
@@ -101,6 +111,7 @@ export function useColdHarbor() {
       else if (e.type === "say") updateRun(runId, () => ({ status: "said", text: e.text }));
       else if (e.type === "error") updateRun(runId, () => ({ status: "error", text: e.message }));
       else if (e.type === "clarify") updateRun(runId, () => ({ status: "clarify", clarify: { question: e.question, options: e.options } }));
+      else if (e.type === "confirm") updateRun(runId, () => ({ status: "confirm", confirm: { toolId: e.toolId, title: e.title, args: e.args, readOnly: e.readOnly } }));
       else if (e.type === "tile") {
         const tile = { ...e.tile, createdAt: Date.now() };
         setTiles((ts) => (e.replaces && ts.some((t) => t.id === e.replaces) ? ts.map((t) => (t.id === e.replaces ? tile : t)) : [tile, ...ts]));
@@ -123,11 +134,12 @@ export function useColdHarbor() {
     if (!res.ok || !j.frames) throw new Error(j.error ?? "Refresh failed");
     setTiles((ts) => ts.map((x) => (x.id === id ? { ...x, frames: j.frames!, createdAt: Date.now() } : x)));
   };
+  const cancel = (runId: string) => updateRun(runId, () => ({ status: "cancelled", confirm: undefined }));
   const clear = () => {
     setTiles([]);
     setMessages([]);
     setFocusId(null);
   };
 
-  return { tiles, messages, focusId, setFocusId, busy, catalog, loadCatalog, ask, setWidget, removeTile, refreshTile, clear };
+  return { tiles, messages, focusId, setFocusId, busy, catalog, loadCatalog, ask, cancel, setWidget, removeTile, refreshTile, clear };
 }

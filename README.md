@@ -9,6 +9,35 @@ data and draws it with the right widget. Follow up with "as a table", "on a map"
 Everything runs locally: routing by [Kev](https://github.com/jaredpalmer/kev) (a tiny, calibrated decision model, ~0.2 s),
 details by any chat model (Ollama by default), data by MCP servers.
 
+## Goal
+
+Add an MCP server, and you're done. You get a dashboard that shows that server's data as live widgets: charts,
+tables, maps, boards, detail cards. You change what you see by asking in plain words.
+
+- **For people who don't write code.** No code, no per-server setup, no mapping work. Add the MCP server and start
+  using the dashboard.
+- **Works with any MCP server.** Nothing in ColdHarbor is written for one server (GitHub, Linear, a database…).
+  Everything is inferred from what servers already expose: tool names, descriptions, input schemas, annotations
+  (`readOnlyHint`, `destructiveHint`) and the shape of the data they return.
+- **Fast and accurate on small, cheap models.** A "System One" decision model ([Kev](https://github.com/jaredpalmer/kev))
+  makes the quick, frequent calls (which tool, which widget, is this a follow-up?) with calibrated confidence in about
+  a second. A small local LLM is used only where language is needed (filling in tool arguments) or when Kev is unsure.
+  On this repo's benchmark the hybrid router gets 91% of routing right versus 84% for the LLM alone, with a 4.4× faster
+  median; see [docs/benchmark.md](docs/benchmark.md).
+- **Safe by default.** Tools that only read run on their own. Anything that can change data asks you first.
+
+### Principles
+
+When you build a feature, check it against these:
+
+- **No server-specific code.** If it only works for one MCP server, it doesn't belong in ColdHarbor.
+- **Infer, don't configure.** Use what the server already tells us before adding a setting or asking the user.
+- **Ask when unsure, never guess silently.** Low confidence becomes a question, not a quiet wrong answer.
+- **Read-only runs itself; writes need a click.** Respect tool annotations; when a server gives none, only clearly
+  read-only names (`get_…`, `list_…`, `search_…`) run on their own.
+- **Small models + System One over one big model.** Fast calibrated decisions first, the LLM only where it's needed.
+- **Show why.** Every step the engine takes should be visible to the user.
+
 ## The idea: three parts that never import each other
 
 ```

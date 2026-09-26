@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { views } from "@/widgets/views";
 import type { Catalog } from "./use-coldharbor";
 
-const Dot = ({ ok }: { ok: boolean }) => <span className={cn("inline-block size-2 shrink-0 rounded-full", ok ? "bg-emerald-500" : "bg-rose-500")} />;
+const Dot = ({ ok, warn }: { ok: boolean; warn?: boolean }) => <span className={cn("inline-block size-2 shrink-0 rounded-full", ok ? "bg-emerald-500" : warn ? "bg-amber-500" : "bg-rose-500")} />;
 
 const SNIPPET = `"mcpServers": {
   "github": {
@@ -43,13 +43,13 @@ export function Sources({ catalog, onOpen }: { catalog: Catalog | null; onOpen()
               <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sources · MCP servers</h3>
               {catalog.servers.map((s) => (
                 <div key={s.name} className="rounded-lg border p-3">
-                  <div className="flex items-center gap-2 font-medium"><Dot ok={s.state === "ready"} /> {s.name}
-                    {s.state !== "ready" && <span className="truncate text-xs font-normal text-destructive">{s.error ?? s.state}</span>}
+                  <div className="flex items-center gap-2 font-medium"><Dot ok={s.state === "ready"} warn={s.state === "needs-setup"} /> {s.name}
+                    {s.state !== "ready" && <span className={cn("truncate text-xs font-normal", s.state === "needs-setup" ? "text-amber-600 dark:text-amber-400" : "text-destructive")}>{s.state === "needs-setup" ? "needs setup: " : ""}{s.error ?? s.state}</span>}
                   </div>
                   <ul className="mt-2 space-y-1.5">
                     {catalog.tools.filter((t) => t.server === s.name).map((t) => (
                       <li key={t.id}>
-                        <div className="font-mono text-xs">{t.name}</div>
+                        <div className="flex items-center gap-1.5 font-mono text-xs">{t.name}{!t.autoRun && <span className="rounded bg-amber-500/15 px-1 font-sans text-[10px] text-amber-700 dark:text-amber-300">asks first</span>}</div>
                         <div className="text-xs text-muted-foreground">{t.description}</div>
                       </li>
                     ))}

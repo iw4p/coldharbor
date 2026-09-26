@@ -6,6 +6,8 @@
  */
 import type { WidgetSpec } from "@coldharbor/core";
 import { bar } from "./bar/spec.ts";
+import { detail } from "./detail/spec.ts";
+import { kanban } from "./kanban/spec.ts";
 import { feed } from "./feed/spec.ts";
 import { line } from "./line/spec.ts";
 import { map } from "./map/spec.ts";
@@ -13,4 +15,4 @@ import { stat } from "./stat/spec.ts";
 import { table } from "./table/spec.ts";
 import { text } from "./text/spec.ts";
 
-export const specs: WidgetSpec[] = [line, bar, stat, map, feed, table, text];
+export const specs: WidgetSpec[] = [line, bar, stat, map, feed, kanban, detail, table, text];

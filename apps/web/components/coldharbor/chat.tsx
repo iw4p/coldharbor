@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUp, CircleAlert, Loader2, Target, X } from "lucide-react";
+import { ArrowUp, CircleAlert, Loader2, ShieldAlert, Target, X } from "lucide-react";
 import { cn } from "cn";
 import type { Tile } from "@coldharbor/core";
 import { Button } from "@/components/ui/button";
-import type { Message } from "./use-coldharbor";
+import type { AskOptions, Message } from "./use-coldharbor";
 
 const EXAMPLES = [
   "What's the weather in Berlin this week?",
@@ -23,12 +23,13 @@ interface Props {
   messages: Message[];
   busy: boolean;
   focus?: Tile;
-  onAsk(text: string, forceTool?: string, replyTo?: string): void;
+  onAsk(text: string, opts?: AskOptions): void;
+  onCancel(runId: string): void;
   onClearFocus(): void;
   onShowTile(id: string): void;
 }
 
-export function Chat({ messages, busy, focus, onAsk, onClearFocus, onShowTile }: Props) {
+export function Chat({ messages, busy, focus, onAsk, onCancel, onClearFocus, onShowTile }: Props) {
   const [text, setText] = useState("");
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -82,12 +83,29 @@ export function Chat({ messages, busy, focus, onAsk, onClearFocus, onShowTile }:
                       {m.text}
                     </div>
                   )}
+                  {m.status === "confirm" && m.confirm && (
+                    <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-sm">
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <ShieldAlert className="size-4 text-amber-600 dark:text-amber-400" />
+                        Run <span className="font-mono text-xs">{m.confirm.toolId}</span>?
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {m.confirm.readOnly ? "This tool isn't set to run automatically." : "This tool can change things. Check the arguments first."}
+                      </p>
+                      <pre className="mt-2 max-h-40 overflow-auto rounded-md bg-background/70 p-2 text-[11px]">{JSON.stringify(m.confirm.args, null, 2)}</pre>
+                      <div className="mt-2 flex gap-1.5">
+                        <Button size="sm" className="h-7" disabled={busy} onClick={() => onAsk(m.message, { confirmed: { toolId: m.confirm!.toolId, args: m.confirm!.args }, replyTo: m.id })}>Run it</Button>
+                        <Button size="sm" variant="ghost" className="h-7" onClick={() => onCancel(m.id)}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
+                  {m.status === "cancelled" && <div className="text-xs text-muted-foreground">Cancelled. Nothing was run.</div>}
                   {m.status === "clarify" && m.clarify && (
                     <div className="rounded-lg bg-amber-500/10 px-3 py-2.5 text-sm">
                       {m.clarify.question}
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {m.clarify.options.map((o) => (
-                          <Button key={o.toolId} size="sm" variant="outline" className="h-7 rounded-full" onClick={() => onAsk(m.message, o.toolId, m.id)}>
+                          <Button key={o.toolId} size="sm" variant="outline" className="h-7 rounded-full" onClick={() => onAsk(m.message, { forceTool: o.toolId, replyTo: m.id })}>
                             {o.label} <span className="tabular-nums text-muted-foreground">{Math.round(o.p * 100)}%</span>
                           </Button>
                         ))}

@@ -11,6 +11,12 @@ export interface ToolInfo {
   title: string;
   description: string;
   inputSchema: JsonSchema;
+  /** What the server says about itself (its MCP `instructions`), shared by all its tools. */
+  serverInfo?: string;
+  /** Reads data only (the server's readOnlyHint, or a get/list/search… name when it gives no hints). */
+  readOnly: boolean;
+  /** Runs without asking. Read-only tools do by default; see `autoRun` in the server config. */
+  autoRun: boolean;
 }
 
 /**
@@ -67,6 +73,10 @@ export interface RouteDecision {
   newSubject: number;
   /** Probability the message adjusts the previous result ("and for the last 5 days?"). Low for off-topic chat. */
   followUp: number;
+  /** Candidate servers, most likely first (two-step routing). */
+  servers?: { id: string; p: number }[];
+  /** A few likely tools, for a second opinion when the router is unsure. */
+  shortlist?: string[];
 }
 
 /** Decides which tool and widget a message is about. Kev and an LLM both implement it. */
@@ -90,6 +100,8 @@ export interface ToolRunner {
 export type EngineEvent =
   | { type: "step"; step: TraceStep }
   | { type: "clarify"; question: string; options: { toolId: string; label: string; p: number }[] }
+  /** The tool can change things, so the user has to approve this exact call first. */
+  | { type: "confirm"; toolId: string; title: string; args: Args; readOnly: boolean }
   | { type: "tile"; tile: Tile; replaces?: string }
   | { type: "say"; text: string }
   | { type: "error"; message: string };

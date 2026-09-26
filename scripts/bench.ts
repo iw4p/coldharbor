@@ -14,12 +14,13 @@ import os from "node:os";
 import { join } from "node:path";
 import { ask, createLLM, hybridRouter, kevRouter, llmRouter, loadConfig, McpHub, THRESHOLDS, type Focus, type LLM, type RouteDecision, type Router } from "../packages/core/src/server.ts";
 import { specs } from "../apps/web/widgets/specs.ts";
-import { CASES, CONVERSATION, type Case } from "./cases.ts";
+import { casesFor, CONVERSATION, type Case } from "./cases.ts";
 
 const { config, root } = loadConfig();
 const kevUrl = config.router.type !== "llm" ? config.router.baseUrl : "http://127.0.0.1:8009";
 const hub = new McpHub(config.mcpServers, root);
 const tools = await hub.list();
+const CASES = casesFor(tools.map((t) => t.id));
 
 // Count every LLM call, whoever makes it.
 const base = createLLM(config.llm);

@@ -23,7 +23,7 @@ export async function GET() {
   return Response.json({
     configPath: g.configPath,
     servers: g.hub.serverStatus(),
-    tools: tools.map(({ id, server, name, title, description }) => ({ id, server, name, title, description })),
+    tools: tools.map(({ id, server, name, title, description, readOnly, autoRun }) => ({ id, server, name, title, description, readOnly, autoRun })),
     widgets: specs.map(({ id, name, ask }) => ({ id, name, ask })),
     router: { name: g.router.name, up: routerUp },
     llm: { name: `${llm.model} (${llm.provider})`, up: llmUp },

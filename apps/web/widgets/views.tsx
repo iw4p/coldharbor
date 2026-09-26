@@ -7,8 +7,10 @@
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 import type { Frame } from "@coldharbor/core";
-import { BarChart3, FileText, LineChart, List, Map, SquareStack, Table2, type LucideIcon } from "lucide-react";
+import { BarChart3, FileText, Columns3, IdCard, LineChart, List, Map, SquareStack, Table2, type LucideIcon } from "lucide-react";
 import BarView from "./bar/view";
+import DetailView from "./detail/view";
+import KanbanView from "./kanban/view";
 import FeedView from "./feed/view";
 import LineView from "./line/view";
 import StatView from "./stat/view";
@@ -24,6 +26,8 @@ export const views: Record<string, { icon: LucideIcon; View: ComponentType<{ fra
   stat: { icon: SquareStack, View: StatView },
   map: { icon: Map, View: MapView },
   feed: { icon: List, View: FeedView },
+  kanban: { icon: Columns3, View: KanbanView },
+  detail: { icon: IdCard, View: DetailView },
   table: { icon: Table2, View: TableView },
   text: { icon: FileText, View: TextView },
 };

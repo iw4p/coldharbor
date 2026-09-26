@@ -5,7 +5,8 @@
  * Neither side knows the other exists, so either can be swapped or added freely.
  */
 
-export type FieldType = "time" | "number" | "string" | "url" | "lat" | "lon";
+/** "text" is long prose (a description, a README, a commit message), shown in details rather than in tables. */
+export type FieldType = "time" | "number" | "string" | "text" | "url" | "lat" | "lon";
 
 export interface Field {
   name: string;
@@ -26,6 +27,8 @@ export interface Frame {
   prefer?: string[];
   /** The string field that names each row (a city, a ticker, a headline). */
   labelField?: string;
+  /** A string field with a few distinct values (state, status…) that rows can be grouped by. */
+  groupField?: string;
 }
 
 export const fieldsOf = (f: Frame, ...types: FieldType[]) => f.fields.filter((x) => types.includes(x.type));
@@ -42,48 +45,4 @@ export function isFrame(x: unknown): x is Frame {
   return !!f && typeof f.title === "string" && Array.isArray(f.fields) && Array.isArray(f.rows);
 }
 
-export function textFrame(text: string, title: string): Frame {
-  return { title, fields: [{ name: "text", type: "string" }], rows: [{ text }], prefer: ["text"] };
-}
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}([T ][\d:.]+(Z|[+-]\d{2}:?\d{2})?)?$/;
-
-function typeOf(key: string, v: unknown): FieldType {
-  const k = key.toLowerCase();
-  if (typeof v === "number") {
-    if (k === "lat" || k === "latitude") return "lat";
-    if (k === "lon" || k === "lng" || k === "longitude") return "lon";
-    return "number";
-  }
-  if (typeof v === "string") {
-    if (/^https?:\/\//.test(v)) return "url";
-    if (ISO_DATE.test(v)) return "time";
-  }
-  return "string";
-}
-
-const scalar = (v: unknown): Value =>
-  v == null ? null : typeof v === "number" || typeof v === "string" ? v : typeof v === "boolean" ? String(v) : JSON.stringify(v);
-
-/**
- * Best-effort conversion of arbitrary JSON into a Frame, so MCP servers that know
- * nothing about ColdHarbor still show up as tables, charts or maps.
- */
-export function inferFrame(data: unknown, title: string): Frame {
-  if (Array.isArray(data) && data.length && data.every((r) => r && typeof r === "object" && !Array.isArray(r))) {
-    const rows = data as Record<string, unknown>[];
-    const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))].slice(0, 24);
-    const fields: Field[] = keys.map((k) => {
-      const sample = rows.find((r) => r[k] != null)?.[k];
-      return { name: k, type: typeOf(k, sample) };
-    });
-    return { title, fields, rows: rows.map((r) => Object.fromEntries(keys.map((k) => [k, scalar(r[k])]))) };
-  }
-  if (data && typeof data === "object" && !Array.isArray(data)) {
-    const entries = Object.entries(data as Record<string, unknown>);
-    const list = entries.find(([, v]) => Array.isArray(v) && v.length && typeof v[0] === "object");
-    if (list) return inferFrame(list[1], title);
-    return inferFrame([data], title);
-  }
-  return textFrame(typeof data === "string" ? data : JSON.stringify(data, null, 2), title);
-}
+export { inferFrames, textFrame } from "./infer.ts";

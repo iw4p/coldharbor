@@ -33,6 +33,20 @@ export function findConfig(from = process.cwd()): string | undefined {
   }
 }
 
+/** Loads KEY=value lines from .env and .env.local next to the config (without overriding the real environment). */
+function loadDotenv(dir: string) {
+  for (const file of [".env.local", ".env"]) {
+    const p = join(dir, file);
+    if (!existsSync(p)) continue;
+    for (const line of readFileSync(p, "utf8").split("\n")) {
+      const m = line.match(/^\s*(?:export\s+)?([A-Za-z_]\w*)\s*=\s*(.*?)\s*$/);
+      if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, "$2");
+    }
+  }
+}
+
+const placeholders = (v: unknown) => [...JSON.stringify(v).matchAll(/\$\{(\w+)\}/g)].map((m) => m[1]);
+
 /** "${NAME}" in any string is replaced with the environment variable NAME, so secrets stay out of the file. */
 function interpolate<T>(v: T): T {
   if (typeof v === "string") return v.replace(/\$\{(\w+)\}/g, (_, k) => process.env[k] ?? "") as T;
@@ -43,7 +57,14 @@ function interpolate<T>(v: T): T {
 
 export function loadConfig(path = findConfig()): { config: ColdHarborConfig; root: string; path?: string } {
   if (!path) return { config: DEFAULTS, root: process.cwd() };
-  const raw = interpolate(JSON.parse(readFileSync(path, "utf8")));
+  loadDotenv(dirname(path));
+  const parsed = JSON.parse(readFileSync(path, "utf8"));
+  // Servers whose ${VARS} aren't set are marked, so they show "needs setup" instead of failing to start.
+  for (const s of Object.values(parsed.mcpServers ?? {}) as { missing?: string[] }[]) {
+    const missing = placeholders(s).filter((k) => !process.env[k]);
+    if (missing.length) s.missing = missing;
+  }
+  const raw = interpolate(parsed);
   return {
     config: { ...DEFAULTS, ...raw, llm: { ...DEFAULTS.llm, ...raw.llm }, router: raw.router ?? DEFAULTS.router },
     root: dirname(path),

@@ -1,9 +1,40 @@
 {
-  "router": { "type": "hybrid", "baseUrl": "http://127.0.0.1:8009" },
-  "llm": { "provider": "ollama", "model": "qwen3.5:latest" },
+  "router": {
+    "type": "hybrid",
+    "baseUrl": "http://127.0.0.1:8009"
+  },
+  "llm": {
+    "provider": "ollama",
+    "model": "qwen3.5:latest"
+  },
   "mcpServers": {
-    "weather": { "command": "node", "args": ["sources/weather/src/index.ts"] },
-    "markets": { "command": "node", "args": ["sources/markets/src/index.ts"] },
-    "news": { "command": "node", "args": ["sources/news/src/index.ts"] }
+    "weather": {
+      "command": "node",
+      "args": [
+        "sources/weather/src/index.ts"
+      ]
+    },
+    "markets": {
+      "command": "node",
+      "args": [
+        "sources/markets/src/index.ts"
+      ]
+    },
+    "news": {
+      "command": "node",
+      "args": [
+        "sources/news/src/index.ts"
+      ]
+    },
+    "github": {
+      "command": "github-mcp-server",
+      "args": [
+        "stdio",
+        "--read-only"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
   }
 }

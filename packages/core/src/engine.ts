@@ -13,6 +13,8 @@ export interface AskInput {
   focus?: Focus;
   /** Set when the user answered a clarifying question. */
   forceTool?: string;
+  /** Set when the user approved a tool call that needed confirmation. */
+  confirmed?: { toolId: string; args: Args };
 }
 
 /** How sure the router must be before we act without asking. */
@@ -49,6 +51,18 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
   const tools = await deps.tools.list();
   if (!tools.length) {
     yield { type: "error", message: "No tools are connected. Add an MCP server to coldharbor.config.json." };
+    return;
+  }
+
+  // An approved call: run exactly what the user saw, nothing else.
+  if (input.confirmed) {
+    const tool = tools.find((t) => t.id === input.confirmed!.toolId);
+    if (!tool) return void (yield { type: "error", message: `Unknown tool ${input.confirmed.toolId}` });
+    const t0 = Date.now();
+    const frames = titled(await deps.tools.call(tool.id, input.confirmed.args), tool, input.confirmed.args);
+    yield step(tool.server, `${tool.name} (approved) → ${frames.length} frame${frames.length === 1 ? "" : "s"}`, Date.now() - t0);
+    const fits = rankWidgets(deps.widgets, frames);
+    yield { type: "tile", tile: { id: crypto.randomUUID(), toolId: tool.id, args: input.confirmed.args, frames, widget: fits[0]?.id ?? "text", title: frames[0]?.title ?? tool.title, createdAt: Date.now(), trace } };
     return;
   }
 
@@ -98,13 +112,18 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
     const t0 = Date.now();
     args = await fillArgs(deps.llm, tool, message, same ? focus!.args : undefined);
     yield step(deps.llm.name, JSON.stringify(args), Date.now() - t0);
+    if (!tool.autoRun && !(same && sameArgs(args, focus!.args))) {
+      yield step("engine", `${tool.name} ${tool.readOnly ? "isn't set to run automatically" : "can change things"}, so asking first`);
+      yield { type: "confirm", toolId, title: tool.title, args, readOnly: tool.readOnly };
+      return;
+    }
     if (same && sameArgs(args, focus!.args)) {
       frames = focus!.frames;
       reused = true;
       yield step("engine", "nothing new to fetch, reusing the data");
     } else {
       const t1 = Date.now();
-      frames = await deps.tools.call(toolId, args);
+      frames = titled(await deps.tools.call(toolId, args), tool, args);
       yield step(tool.server, `${tool.name} → ${frames.length} frame${frames.length === 1 ? "" : "s"}, ${frames.reduce((n, f) => n + f.rows.length, 0)} rows`, Date.now() - t1);
     }
   }
@@ -156,6 +175,22 @@ export function rankWidgets(widgets: WidgetSpec[], frames: Frame[]) {
 /** The frame a widget should draw: the one it scores highest. */
 export function frameFor(widget: WidgetSpec, frames: Frame[]): Frame | undefined {
   return [...frames].sort((a, b) => widget.score(b) - widget.score(a))[0];
+}
+
+/** "List commits · iw4p / coldharbor": the tool's name plus the arguments that say what it's about. */
+const NOISE_ARG = /page|limit|sort|order|direction|fields|method|format|cursor|after|before|since|until|detail|minimal|sha|ref/i;
+function niceTitle(tool: ToolInfo, args: Args) {
+  const about = Object.entries(args)
+    .filter(([k, v]) => typeof v === "string" && v && v.length <= 40 && !NOISE_ARG.test(k))
+    .map(([, v]) => v as string);
+  const name = tool.title.charAt(0).toUpperCase() + tool.title.slice(1);
+  return about.length ? `${name} · ${about.join(" / ")}` : name;
+}
+
+/** Frames that only got the tool's id as a title (inferred from plain JSON) get a readable one. */
+function titled(frames: Frame[], tool: ToolInfo, args: Args): Frame[] {
+  const nice = niceTitle(tool, args);
+  return frames.map((f) => (f.title === tool.name || f.title.startsWith(`${tool.name} · `) ? { ...f, title: f.title.replace(tool.name, nice) } : f));
 }
 
 async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Args): Promise<Args> {

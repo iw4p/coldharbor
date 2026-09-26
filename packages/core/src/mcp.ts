@@ -1,17 +1,27 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { getDefaultEnvironment, StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { inferFrame, isFrame, textFrame, type Frame } from "./frame.ts";
+import { inferFrames, isFrame, textFrame, type Frame } from "./frame.ts";
 import type { Args, ToolInfo, ToolRunner } from "./types.ts";
 
 /** Same shape as Claude Desktop / Cursor `mcpServers` entries, so configs can be copied across. */
+type Common = {
+  disabled?: boolean;
+  /** Which tools run without asking: "read-only" (default), "all", or "never". */
+  autoRun?: "read-only" | "all" | "never";
+  /** Set by the config loader: environment variables the entry uses that aren't set. */
+  missing?: string[];
+};
 export type ServerConfig =
-  | { command: string; args?: string[]; env?: Record<string, string>; cwd?: string; disabled?: boolean }
-  | { url: string; headers?: Record<string, string>; disabled?: boolean };
+  | ({ command: string; args?: string[]; env?: Record<string, string>; cwd?: string } & Common)
+  | ({ url: string; headers?: Record<string, string> } & Common);
+
+/** For servers that don't annotate their tools: names that only read. */
+const READ_NAME = /^(get|list|search|read|fetch|find|show|describe|query|lookup|view|count|browse|check|download|export)(_|-|[A-Z]|$)/i;
 
 export interface ServerStatus {
   name: string;
-  state: "connecting" | "ready" | "error" | "disabled";
+  state: "connecting" | "ready" | "error" | "disabled" | "needs-setup";
   error?: string;
   tools: string[];
 }
@@ -27,8 +37,9 @@ export class McpHub implements ToolRunner {
   constructor(servers: Record<string, ServerConfig>, root: string) {
     this.servers = servers;
     this.root = root;
-    for (const name of Object.keys(servers)) {
-      this.status.set(name, { name, state: servers[name].disabled ? "disabled" : "connecting", tools: [] });
+    for (const [name, s] of Object.entries(servers)) {
+      const state = s.disabled ? "disabled" : s.missing?.length ? "needs-setup" : "connecting";
+      this.status.set(name, { name, state, tools: [], ...(state === "needs-setup" ? { error: `set ${s.missing!.join(", ")} (environment or .env.local)` } : {}) });
     }
   }
 
@@ -57,20 +68,35 @@ export class McpHub implements ToolRunner {
     return c;
   }
 
+  /** The raw MCP client for a server (for tools like `pnpm probe`). */
+  client(name: string): Promise<Client> {
+    return this.connect(name);
+  }
+
   async list(): Promise<ToolInfo[]> {
-    const names = Object.keys(this.servers).filter((n) => !this.servers[n].disabled);
+    const names = Object.keys(this.servers).filter((n) => !this.servers[n].disabled && !this.servers[n].missing?.length);
     const lists = await Promise.all(names.map(async (server) => {
       try {
-        const { tools } = await (await this.connect(server)).listTools();
+        const client = await this.connect(server);
+        const { tools } = await client.listTools();
+        const serverInfo = client.getInstructions()?.trim() || undefined;
         this.status.set(server, { name: server, state: "ready", tools: tools.map((t) => t.name) });
-        return tools.map((t): ToolInfo => ({
-          id: `${server}.${t.name}`,
-          server,
-          name: t.name,
-          title: t.title ?? t.annotations?.title ?? t.name.replace(/[_-]/g, " "),
-          description: t.description ?? "",
-          inputSchema: t.inputSchema as ToolInfo["inputSchema"],
-        }));
+        const policy = this.servers[server].autoRun ?? "read-only";
+        return tools.map((t): ToolInfo => {
+          const a = t.annotations ?? {};
+          const readOnly = a.readOnlyHint === true || (a.readOnlyHint === undefined && a.destructiveHint !== true && READ_NAME.test(t.name));
+          return {
+            id: `${server}.${t.name}`,
+            server,
+            name: t.name,
+            title: t.title ?? a.title ?? t.name.replace(/[_-]/g, " "),
+            description: t.description ?? "",
+            serverInfo,
+            inputSchema: t.inputSchema as ToolInfo["inputSchema"],
+            readOnly,
+            autoRun: policy === "all" || (policy === "read-only" && readOnly),
+          };
+        });
       } catch (e) {
         this.status.set(server, { name: server, state: "error", error: String((e as Error)?.message ?? e), tools: [] });
         return [];
@@ -83,7 +109,12 @@ export class McpHub implements ToolRunner {
     const dot = toolId.indexOf(".");
     const [server, name] = [toolId.slice(0, dot), toolId.slice(dot + 1)];
     const res = await (await this.connect(server)).callTool({ name, arguments: args });
-    const text = ((res.content as { type: string; text?: string }[] | undefined) ?? []).filter((c) => c.type === "text").map((c) => c.text).join("\n");
+    // Text, and embedded resources (how some servers return file contents). When a server returns a
+    // resource plus a short status line ("downloaded file…"), the resource is the answer.
+    const content = (res.content as { type: string; text?: string; resource?: { text?: string } }[] | undefined) ?? [];
+    const texts = content.filter((c) => c.type === "text" && c.text).map((c) => c.text!);
+    const resources = content.filter((c) => c.type === "resource" && c.resource?.text).map((c) => c.resource!.text!);
+    const text = (resources.length && texts.join("").length < 300 ? resources : [...texts, ...resources]).join("\n");
     if (res.isError) throw new Error(text || `${toolId} failed`);
     return toFrames(res.structuredContent, text, name);
   }
@@ -101,9 +132,9 @@ export class McpHub implements ToolRunner {
 export function toFrames(structured: unknown, text: string, title: string): Frame[] {
   const frames = (structured as { frames?: unknown[] } | undefined)?.frames;
   if (Array.isArray(frames) && frames.every(isFrame)) return frames as Frame[];
-  if (structured) return [inferFrame(structured, title)];
+  if (structured) return inferFrames(structured, title);
   try {
-    return [inferFrame(JSON.parse(text), title)];
+    return inferFrames(JSON.parse(text), title);
   } catch {
     return [textFrame(text, title)];
   }

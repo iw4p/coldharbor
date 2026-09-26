@@ -35,7 +35,7 @@ export function ColdHarborApp() {
             </Button>
           </div>
         </div>
-        <Chat messages={g.messages} busy={g.busy} focus={focus} onAsk={g.ask} onClearFocus={() => g.setFocusId(null)} onShowTile={showTile} />
+        <Chat messages={g.messages} busy={g.busy} focus={focus} onAsk={g.ask} onCancel={g.cancel} onClearFocus={() => g.setFocusId(null)} onShowTile={showTile} />
       </aside>
 
       <main className="coldharbor-canvas min-h-0 overflow-y-auto">
@@ -49,7 +49,7 @@ export function ColdHarborApp() {
         </div>
 
         {!g.tiles.length ? (
-          <Empty catalog={g.catalog} onAsk={g.ask} />
+          <Empty catalog={g.catalog} onAsk={(t) => g.ask(t)} />
         ) : (
           <LayoutGroup>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,420px),1fr))] gap-4 p-5">
