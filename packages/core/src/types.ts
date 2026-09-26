@@ -65,6 +65,8 @@ export interface RouteDecision {
   widgets: Record<string, number>;
   /** Probability the message names something new (a place, company, topic, time period). */
   newSubject: number;
+  /** Probability the message adjusts the previous result ("and for the last 5 days?"). Low for off-topic chat. */
+  followUp: number;
 }
 
 /** Decides which tool and widget a message is about. Kev and an LLM both implement it. */

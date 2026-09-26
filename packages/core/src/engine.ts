@@ -23,7 +23,10 @@ export const THRESHOLDS = {
   /** Stricter: treat the message as "only change the view" and skip the LLM and the data call. */
   viewOnly: 0.75,
   viewOnlySubject: 0.3,
-  offTopic: 0.85,
+  /** Below this, the message names nothing new. */
+  subject: 0.5,
+  /** Below this, the message is not adjusting the previous result (off-topic chat). */
+  followUp: 0.33,
 };
 
 const pct = (p: number) => `${Math.round(p * 100)}%`;
@@ -54,10 +57,11 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
   const [askedWidget, askedP] = top(r.widgets);
   const best = r.tools[0];
   yield step(r.by, `tool ${r.tools.slice(0, 3).map((t) => `${t.id} ${pct(t.p)}`).join(" · ")}` +
-    (askedP >= 0.5 ? ` · asked for ${askedWidget} ${pct(askedP)}` : "") + ` · new subject ${pct(r.newSubject)}`, r.ms);
+    (askedP >= 0.5 ? ` · asked for ${askedWidget} ${pct(askedP)}` : "") + ` · new subject ${pct(r.newSubject)} · follow-up ${pct(r.followUp)}`, r.ms);
 
-  if (!forceTool && focus && r.none > THRESHOLDS.offTopic && askedP < THRESHOLDS.viewOnly && r.newSubject < 0.5) {
-    yield { type: "say", text: `That doesn't look like something your sources can answer (${pct(r.none)} sure). Your canvas stays as it is.` };
+  // No tool, no view request, nothing new named and not adjusting the last result: nothing to do.
+  if (!forceTool && focus && (best?.p ?? 0) < THRESHOLDS.tool && askedP < THRESHOLDS.viewOnly && r.newSubject < THRESHOLDS.subject && r.followUp < THRESHOLDS.followUp) {
+    yield { type: "say", text: `That doesn't look like something your sources can answer. Your canvas stays as it is.` };
     return;
   }
 

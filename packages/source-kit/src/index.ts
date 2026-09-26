@@ -73,9 +73,13 @@ function toText(f: Frame, maxRows = 25): string {
   return `# ${f.title}${f.subtitle ? `\n${f.subtitle}` : ""}\n${head.join(" | ")}\n${rows.map((r) => r.join(" | ")).join("\n")}${more}`;
 }
 
-/** fetch() that throws a readable error on non-2xx responses. */
+/** fetch() with one retry on network errors, and a readable error on non-2xx responses. */
 export async function getJson<T = unknown>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { ...init, headers: { "user-agent": "glance-source/0.1", ...init?.headers } });
+  const opts = { ...init, headers: { "user-agent": "glance-source/0.1", ...init?.headers } };
+  const res = await fetch(url, opts).catch(async () => {
+    await new Promise((r) => setTimeout(r, 800));
+    return fetch(url, opts);
+  });
   if (!res.ok) throw new Error(`${new URL(url).host} returned ${res.status}`);
   return res.json() as Promise<T>;
 }

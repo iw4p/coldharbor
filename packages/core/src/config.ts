@@ -4,8 +4,12 @@ import type { LLMConfig } from "./llm.ts";
 import type { ServerConfig } from "./mcp.ts";
 
 export interface GlanceConfig {
-  /** Which router decides tool + widget. Kev is fast and calibrated; "llm" needs nothing extra. */
-  router: { type: "kev"; baseUrl: string; apiKey?: string } | { type: "llm" };
+  /**
+   * Which router decides tool + widget.
+   * "hybrid": Kev, escalating to the LLM only when Kev is unsure (best accuracy and speed).
+   * "kev": Kev only (fastest). "llm": the LLM only (needs nothing extra, slowest).
+   */
+  router: { type: "kev" | "hybrid"; baseUrl: string; apiKey?: string } | { type: "llm" };
   /** The chat model that fills in tool arguments (and routes, when router.type is "llm"). */
   llm: LLMConfig;
   /** Any MCP servers, in the same format as Claude Desktop's config. */
@@ -15,7 +19,7 @@ export interface GlanceConfig {
 export const CONFIG_FILE = "glance.config.json";
 
 const DEFAULTS: GlanceConfig = {
-  router: { type: "kev", baseUrl: "http://127.0.0.1:8009" },
+  router: { type: "hybrid", baseUrl: "http://127.0.0.1:8009" },
   llm: { provider: "ollama", model: "qwen3.5:latest" },
   mcpServers: {},
 };

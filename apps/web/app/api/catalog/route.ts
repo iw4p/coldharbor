@@ -17,7 +17,7 @@ export async function GET() {
   const tools = await g.hub.list();
   const { router, llm } = g.config;
   const [routerUp, llmUp] = await Promise.all([
-    router.type === "kev" ? reachable(`${router.baseUrl}/v1/models`) : Promise.resolve(true),
+    router.type !== "llm" ? reachable(`${router.baseUrl}/v1/models`) : Promise.resolve(true),
     llm.provider === "ollama" ? reachable(`${llm.baseUrl ?? "http://127.0.0.1:11434"}/api/tags`) : Promise.resolve(true),
   ]);
   return Response.json({

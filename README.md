@@ -55,7 +55,7 @@ pnpm doctor          # connects to every source, pings the router and the LLM
 pnpm dev             # http://localhost:3100
 ```
 
-Kev (optional but recommended; without it set `"router": { "type": "llm" }`):
+Kev (recommended; without it set `"router": { "type": "llm" }`):
 
 ```bash
 git clone https://github.com/jaredpalmer/kev && cd kev && uv sync --extra serve
@@ -66,7 +66,7 @@ uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b --port 8009
 
 ```jsonc
 {
-  "router": { "type": "kev", "baseUrl": "http://127.0.0.1:8009" },   // or { "type": "llm" }
+  "router": { "type": "hybrid", "baseUrl": "http://127.0.0.1:8009" }, // "hybrid" | "kev" | "llm"
   "llm": { "provider": "ollama", "model": "qwen3.5:latest" },          // or "openai" + baseUrl + apiKey (any compatible API)
   "mcpServers": {                                                     // same format as Claude Desktop
     "weather": { "command": "node", "args": ["sources/weather/src/index.ts"] },
@@ -141,8 +141,21 @@ sources/markets         Yahoo Finance, CoinGecko, ECB exchange rates (no keys)
 sources/news            GDELT, Google News fallback (no key)
 apps/web                Next.js + shadcn/ui + motion: chat, canvas, widgets/
 scripts/doctor.ts       check config, sources, router, LLM
-scripts/eval-router.ts  measure routing accuracy on sample messages
+scripts/eval-router.ts  quick routing accuracy check
+scripts/bench.ts        before/after benchmark (LLM vs Kev vs hybrid) → docs/benchmark.md
+scripts/cases.ts        the labelled messages both use
 ```
+
+## Routers, and what Kev buys you
+
+| `router.type` | Who decides tool + widget | Trade-off |
+|---|---|---|
+| `hybrid` (default) | Kev; the LLM only when Kev is unsure which tool is meant | Kev's speed on most messages, the LLM's accuracy on the hard ones |
+| `kev` | Kev only | Fastest; unsure messages become a "which one?" question |
+| `llm` | The LLM for every message | Needs nothing extra; slowest, and it tends to invent view requests |
+
+Measured on this repo's sources, with `pnpm bench`: see **[docs/benchmark.md](docs/benchmark.md)** for accuracy, confidently-wrong answers,
+routing time and a full conversation, message by message.
 
 ## How a message flows
 

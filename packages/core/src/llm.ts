@@ -19,6 +19,16 @@ function parseJson(text: string): unknown {
   }
 }
 
+/** One retry on network failures (a model reloading under memory pressure can drop a connection). */
+async function post(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    await new Promise((r) => setTimeout(r, 1000));
+    return fetch(url, init);
+  }
+}
+
 export function createLLM(cfg: LLMConfig): LLM {
   const name = cfg.model.split(":")[0];
   if (cfg.provider === "ollama") {
@@ -26,7 +36,7 @@ export function createLLM(cfg: LLMConfig): LLM {
     return {
       name,
       async json(system, user) {
-        const res = await fetch(`${base}/api/chat`, {
+        const res = await post(`${base}/api/chat`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -43,7 +53,7 @@ export function createLLM(cfg: LLMConfig): LLM {
   return {
     name,
     async json(system, user) {
-      const res = await fetch(`${base}/chat/completions`, {
+      const res = await post(`${base}/chat/completions`, {
         method: "POST",
         headers: { "content-type": "application/json", ...(cfg.apiKey ? { authorization: `Bearer ${cfg.apiKey}` } : {}) },
         body: JSON.stringify({

@@ -3,14 +3,14 @@ import { loadConfig, type GlanceConfig } from "./config.ts";
 import { ask, type AskInput } from "./engine.ts";
 import { createLLM } from "./llm.ts";
 import { McpHub } from "./mcp.ts";
-import { kevRouter, llmRouter } from "./routers.ts";
+import { hybridRouter, kevRouter, llmRouter } from "./routers.ts";
 import type { LLM, Router, WidgetSpec } from "./types.ts";
 
 export * from "./index.ts";
 export { ask, THRESHOLDS, type AskInput, type EngineDeps } from "./engine.ts";
 export { createLLM, type LLMConfig } from "./llm.ts";
 export { McpHub, toFrames, type ServerConfig, type ServerStatus } from "./mcp.ts";
-export { kevRouter, llmRouter } from "./routers.ts";
+export { hybridRouter, kevRouter, llmRouter } from "./routers.ts";
 export { findConfig, loadConfig, type GlanceConfig } from "./config.ts";
 
 export interface Glance {
@@ -30,7 +30,8 @@ export function glance(): Glance {
   const { config, root, path } = loadConfig();
   const hub = (g.__glanceHub ??= new McpHub(config.mcpServers, root));
   const llm = createLLM(config.llm);
-  const router = config.router.type === "kev" ? kevRouter(config.router) : llmRouter(llm);
+  const r = config.router;
+  const router = r.type === "llm" ? llmRouter(llm) : r.type === "kev" ? kevRouter(r) : hybridRouter(kevRouter(r), llmRouter(llm));
   return {
     config, configPath: path, hub, llm, router,
     ask: (input, widgets) => ask(input, { router, llm, tools: hub, widgets }),

@@ -1,0 +1,1625 @@
+{
+  "date": "2026-09-26T20:03:00.679Z",
+  "llm": {
+    "provider": "ollama",
+    "model": "qwen3.5:latest"
+  },
+  "kev": "jaredpalmer/kev-0.8b",
+  "summary": {
+    "before": {
+      "n": 32,
+      "tool": 32,
+      "widget": 27,
+      "both": 27,
+      "confidentlyWrong": 0,
+      "escalated": 0,
+      "byKind": {
+        "direct": "17/20",
+        "follow-up": "6/8",
+        "off-topic": "4/4"
+      },
+      "p50": 7362.049417000002,
+      "p95": 10213.164833000017,
+      "mean": 7155.5151576875005,
+      "convoOk": 8,
+      "convoN": 9,
+      "convoMs": 101942.125504,
+      "convoLlm": 14
+    },
+    "kev": {
+      "n": 32,
+      "tool": 28,
+      "widget": 32,
+      "both": 28,
+      "confidentlyWrong": 0,
+      "escalated": 0,
+      "byKind": {
+        "direct": "16/20",
+        "follow-up": "8/8",
+        "off-topic": "4/4"
+      },
+      "p50": 1716.5967079999973,
+      "p95": 2301.898083999986,
+      "mean": 1815.0321874687515,
+      "convoOk": 9,
+      "convoN": 9,
+      "convoMs": 54317.391084,
+      "convoLlm": 6
+    },
+    "hybrid": {
+      "n": 32,
+      "tool": 29,
+      "widget": 32,
+      "both": 29,
+      "confidentlyWrong": 0,
+      "escalated": 3,
+      "byKind": {
+        "direct": "17/20",
+        "follow-up": "8/8",
+        "off-topic": "4/4"
+      },
+      "p50": 1668.8462079999736,
+      "p95": 8454.431499999948,
+      "mean": 2361.6115104062483,
+      "convoOk": 9,
+      "convoN": 9,
+      "convoMs": 59639.599333999795,
+      "convoLlm": 7
+    }
+  },
+  "cases": [
+    {
+      "kind": "direct",
+      "message": "What's the weather in Berlin this week?",
+      "tool": [
+        "weather.forecast"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "will it rain in London tomorrow?",
+      "tool": [
+        "weather.forecast"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "how cold will it get in Oslo this weekend",
+      "tool": [
+        "weather.forecast"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "weather in Berlin, Paris and Rome on a map",
+      "tool": [
+        "weather.forecast"
+      ],
+      "widget": [
+        "map"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "temperature in Tokyo for the next 10 days as a line chart",
+      "tool": [
+        "weather.forecast"
+      ],
+      "widget": [
+        "line"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "How has Apple stock done this year?",
+      "tool": [
+        "markets.stock_prices"
+      ],
+      "widget": [
+        "",
+        "line"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "compare Tesla and Nvidia in a chart",
+      "tool": [
+        "markets.stock_prices"
+      ],
+      "widget": [
+        "line",
+        "bar"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "MSFT share price over the last 5 days as a table",
+      "tool": [
+        "markets.stock_prices"
+      ],
+      "widget": [
+        "table"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "is Amazon stock up this month?",
+      "tool": [
+        "markets.stock_prices"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "bitcoin price right now",
+      "tool": [
+        "markets.crypto_prices"
+      ],
+      "widget": [
+        "",
+        "stat"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "ETH vs SOL this month",
+      "tool": [
+        "markets.crypto_prices"
+      ],
+      "widget": [
+        "",
+        "line"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "how much is one dogecoin worth",
+      "tool": [
+        "markets.crypto_prices"
+      ],
+      "widget": [
+        "",
+        "stat"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "euro to dollar over the last 3 months as a table",
+      "tool": [
+        "markets.exchange_rates"
+      ],
+      "widget": [
+        "table"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "EUR to GBP rate",
+      "tool": [
+        "markets.exchange_rates"
+      ],
+      "widget": [
+        "",
+        "stat"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "how many yen is one dollar",
+      "tool": [
+        "markets.exchange_rates"
+      ],
+      "widget": [
+        "",
+        "stat"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "latest news about electric cars",
+      "tool": [
+        "news.search_news"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "what's happening with the elections in Brazil",
+      "tool": [
+        "news.search_news"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "headlines on AI regulation",
+      "tool": [
+        "news.search_news"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "any news about the earthquake in Japan",
+      "tool": [
+        "news.search_news"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "bar chart of news about OpenAI by country",
+      "tool": [
+        "news.search_news"
+      ],
+      "widget": [
+        "bar"
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "yeah show it as a table",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        "table"
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "bar chart please",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        "bar"
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "show it on a map",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        "map"
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "as a line graph",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        "line"
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "just give me the number",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        "stat",
+        ""
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "what about Tehran?",
+      "tool": [
+        "none",
+        "weather.forecast"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "compare it with Nvidia",
+      "tool": [
+        "none",
+        "markets.stock_prices"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "follow-up",
+      "message": "and for the last year?",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "off-topic",
+      "message": "tell me a joke",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "off-topic",
+      "message": "what's the capital of France",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "off-topic",
+      "message": "write me a poem about the sea",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        ""
+      ]
+    },
+    {
+      "kind": "off-topic",
+      "message": "hi",
+      "tool": [
+        "none"
+      ],
+      "widget": [
+        ""
+      ]
+    }
+  ],
+  "routing": {
+    "before": [
+      {
+        "tool": "weather.forecast",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 5475.613792000001,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 4585.230459,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 4680.891875000001,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 1,
+        "widget": "map",
+        "escalated": false,
+        "ms": 4730.553250000001,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 4775.138333999999,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 4865.709792000005,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 4914.0532079999975,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 1,
+        "widget": "table",
+        "escalated": false,
+        "ms": 4985.729458000002,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 5021.151833999997,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 4995.140667,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 5290.8477920000005,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 5622.794375000005,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 1,
+        "widget": "table",
+        "escalated": false,
+        "ms": 5597.786291999997,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 5820.403833000004,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 6277.431125000003,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 7883.630541999999,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 9124.209749999995,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 9086.386750000005,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 10057.53916700001,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 0.9,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 11766.904874999993,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "table",
+        "escalated": false,
+        "ms": 10213.164833000017,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 9858.209124999994,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "map",
+        "escalated": false,
+        "ms": 9473.399542,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "line",
+        "escalated": false,
+        "ms": 9245.686041999987,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 8509.720375000004,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.9,
+        "widget": "map",
+        "escalated": false,
+        "ms": 8591.715417,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.9,
+        "widget": "line",
+        "escalated": false,
+        "ms": 7917.704750000004,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 8668.884541999985,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 7965.45404099999,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 7329.580332999991,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 7362.049417000002,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 8283.769459000003,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      }
+    ],
+    "kev": [
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.7963,
+        "widget": "",
+        "escalated": false,
+        "ms": 2101.428125000006,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.8037,
+        "widget": "",
+        "escalated": false,
+        "ms": 1897.646832999977,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.754,
+        "widget": "",
+        "escalated": false,
+        "ms": 1980.1967500000028,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.5953,
+        "widget": "map",
+        "escalated": false,
+        "ms": 2656.726082999987,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.7328,
+        "widget": "line",
+        "escalated": false,
+        "ms": 2301.898083999986,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.7292,
+        "widget": "",
+        "escalated": false,
+        "ms": 2172.777624999988,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.7588,
+        "widget": "line",
+        "escalated": false,
+        "ms": 1976.5273330000055,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.6794,
+        "widget": "table",
+        "escalated": false,
+        "ms": 1950.4769169999927,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.5637,
+        "widget": "",
+        "escalated": false,
+        "ms": 1777.9488750000019,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 0.9003,
+        "widget": "",
+        "escalated": false,
+        "ms": 1700.5248330000031,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 0.8534,
+        "widget": "",
+        "escalated": false,
+        "ms": 1705.3843749999942,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 0.6016,
+        "widget": "",
+        "escalated": false,
+        "ms": 1716.5967079999973,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 0.8292,
+        "widget": "table",
+        "escalated": false,
+        "ms": 1678.1726670000353,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 0.5938,
+        "widget": "",
+        "escalated": false,
+        "ms": 1692.6362080000108,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.265,
+        "widget": "",
+        "escalated": false,
+        "ms": 1699.6436660000472,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 0.5547,
+        "widget": "",
+        "escalated": false,
+        "ms": 1676.8204160000314,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 0.7719,
+        "widget": "",
+        "escalated": false,
+        "ms": 1669.7667909999727,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1864,
+        "widget": "",
+        "escalated": false,
+        "ms": 1682.005582999962,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.4854,
+        "widget": "",
+        "escalated": false,
+        "ms": 1690.6595000000088,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.3817,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 1670.6128340000287,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1426,
+        "widget": "table",
+        "escalated": false,
+        "ms": 1666.283958999964,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1153,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 1611.976250000007,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0766,
+        "widget": "map",
+        "escalated": false,
+        "ms": 1531.0765000000247,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1472,
+        "widget": "line",
+        "escalated": false,
+        "ms": 1690.957041000016,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.109,
+        "widget": "",
+        "escalated": false,
+        "ms": 1655.128583999991,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.3098,
+        "widget": "",
+        "escalated": false,
+        "ms": 1799.5515000000014,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.5718,
+        "widget": "",
+        "escalated": false,
+        "ms": 1707.035084000032,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0663,
+        "widget": "",
+        "escalated": false,
+        "ms": 1731.9512499999837,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0848,
+        "widget": "",
+        "escalated": false,
+        "ms": 1794.4082909999997,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0869,
+        "widget": "",
+        "escalated": false,
+        "ms": 1876.0759170000092,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0355,
+        "widget": "",
+        "escalated": false,
+        "ms": 1801.584582999989,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0726,
+        "widget": "",
+        "escalated": false,
+        "ms": 1816.5508339999942,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      }
+    ],
+    "hybrid": [
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.7963,
+        "widget": "",
+        "escalated": false,
+        "ms": 1646.597666000016,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.8037,
+        "widget": "",
+        "escalated": false,
+        "ms": 1631.5402499999618,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.754,
+        "widget": "",
+        "escalated": false,
+        "ms": 1667.4399170000106,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.5953,
+        "widget": "map",
+        "escalated": false,
+        "ms": 1668.8462079999736,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.7328,
+        "widget": "line",
+        "escalated": false,
+        "ms": 1757.5445840000175,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.7292,
+        "widget": "",
+        "escalated": false,
+        "ms": 1677.0897090000217,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.7588,
+        "widget": "line",
+        "escalated": false,
+        "ms": 1585.2779579999624,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.6794,
+        "widget": "table",
+        "escalated": false,
+        "ms": 1508.9422919999924,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.5637,
+        "widget": "",
+        "escalated": false,
+        "ms": 1583.2013330000336,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 0.9003,
+        "widget": "",
+        "escalated": false,
+        "ms": 1845.5086669999873,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 0.8534,
+        "widget": "",
+        "escalated": false,
+        "ms": 1620.4249580000178,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.crypto_prices",
+        "toolP": 0.6016,
+        "widget": "",
+        "escalated": false,
+        "ms": 1592.171166999964,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 0.8292,
+        "widget": "table",
+        "escalated": false,
+        "ms": 1650.3721670000232,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.exchange_rates",
+        "toolP": 0.5938,
+        "widget": "",
+        "escalated": false,
+        "ms": 1575.7852079999866,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.265,
+        "widget": "",
+        "escalated": false,
+        "ms": 1668.765665999963,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 0.5547,
+        "widget": "",
+        "escalated": false,
+        "ms": 1861.7130839999882,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 0.7719,
+        "widget": "",
+        "escalated": false,
+        "ms": 1834.43179100001,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1864,
+        "widget": "",
+        "escalated": false,
+        "ms": 1966.7682500000228,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.4854,
+        "widget": "",
+        "escalated": false,
+        "ms": 1800.9686249999795,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "news.search_news",
+        "toolP": 0.9,
+        "widget": "bar",
+        "escalated": true,
+        "ms": 9470.142415999959,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1426,
+        "widget": "table",
+        "escalated": false,
+        "ms": 2060.591000000015,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1153,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 1531.042791999993,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0766,
+        "widget": "map",
+        "escalated": false,
+        "ms": 1547.9167080000043,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.1472,
+        "widget": "line",
+        "escalated": false,
+        "ms": 1596.2839580000145,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.109,
+        "widget": "",
+        "escalated": false,
+        "ms": 1617.0658330000006,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.forecast",
+        "toolP": 0.9,
+        "widget": "",
+        "escalated": true,
+        "ms": 8454.431499999948,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "markets.stock_prices",
+        "toolP": 0.5718,
+        "widget": "",
+        "escalated": false,
+        "ms": 2157.0606249999837,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0663,
+        "widget": "",
+        "escalated": false,
+        "ms": 1705.32150000002,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0848,
+        "widget": "",
+        "escalated": false,
+        "ms": 1593.437666999991,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": true,
+        "ms": 7879.136875000026,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0355,
+        "widget": "",
+        "escalated": false,
+        "ms": 2039.650667000038,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0726,
+        "widget": "",
+        "escalated": false,
+        "ms": 1776.0972920000204,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      }
+    ]
+  },
+  "conversation": [
+    {
+      "message": "What's the weather in Berlin this week?",
+      "expect": {
+        "tool": "weather.forecast",
+        "widget": [
+          "line"
+        ]
+      }
+    },
+    {
+      "message": "show it as a table",
+      "expect": {
+        "tool": "weather.forecast",
+        "widget": [
+          "table"
+        ]
+      }
+    },
+    {
+      "message": "what about Tehran?",
+      "expect": {
+        "tool": "weather.forecast",
+        "widget": [
+          "table"
+        ]
+      }
+    },
+    {
+      "message": "How has Apple stock done this year?",
+      "expect": {
+        "tool": "markets.stock_prices",
+        "widget": [
+          "line"
+        ]
+      }
+    },
+    {
+      "message": "compare it with Nvidia",
+      "expect": {
+        "tool": "markets.stock_prices",
+        "widget": [
+          "line"
+        ]
+      }
+    },
+    {
+      "message": "bar chart please",
+      "expect": {
+        "tool": "markets.stock_prices",
+        "widget": [
+          "bar"
+        ]
+      }
+    },
+    {
+      "message": "and for the last 5 days?",
+      "expect": {
+        "tool": "markets.stock_prices",
+        "widget": [
+          "bar"
+        ]
+      }
+    },
+    {
+      "message": "bitcoin price right now",
+      "expect": {
+        "tool": "markets.crypto_prices",
+        "widget": [
+          "stat",
+          "line"
+        ]
+      }
+    },
+    {
+      "message": "tell me a joke",
+      "expect": {
+        "outcome": "say"
+      }
+    }
+  ],
+  "convo": {
+    "before": [
+      {
+        "ms": 16503.61291700002,
+        "llm": 2,
+        "result": "forecast → line {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 7805.717750000011,
+        "llm": 1,
+        "result": "forecast → table {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 15159.774583999999,
+        "llm": 2,
+        "result": "forecast → map {\"cities\":[\"Tehran\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": false
+      },
+      {
+        "ms": 13402.650916999963,
+        "llm": 2,
+        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 8048.306833999988,
+        "llm": 1,
+        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 8110.530166999961,
+        "llm": 1,
+        "result": "stock_prices → bar {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 13510.801959000004,
+        "llm": 2,
+        "result": "stock_prices → bar {\"symbols\":[\"AAPL\"],\"range\":\"5d\"}",
+        "ok": true
+      },
+      {
+        "ms": 10590.129959000042,
+        "llm": 2,
+        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
+        "ok": true
+      },
+      {
+        "ms": 8810.600417000009,
+        "llm": 1,
+        "result": "said: not a data request",
+        "ok": true
+      }
+    ],
+    "kev": [
+      {
+        "ms": 11659.98229200003,
+        "llm": 1,
+        "result": "forecast → line {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 2392.0193329999456,
+        "llm": 0,
+        "result": "forecast → table {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 7658.165333000012,
+        "llm": 1,
+        "result": "forecast → table {\"cities\":[\"Tehran\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 8592.336833000008,
+        "llm": 1,
+        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 8028.105291999993,
+        "llm": 1,
+        "result": "stock_prices → line {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 2504.319084000017,
+        "llm": 0,
+        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 6885.150916000013,
+        "llm": 1,
+        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"5d\"}",
+        "ok": true
+      },
+      {
+        "ms": 4076.428917000012,
+        "llm": 1,
+        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
+        "ok": true
+      },
+      {
+        "ms": 2520.883083999972,
+        "llm": 0,
+        "result": "said: not a data request",
+        "ok": true
+      }
+    ],
+    "hybrid": [
+      {
+        "ms": 9218.763791999896,
+        "llm": 1,
+        "result": "forecast → line {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 2070.180917000049,
+        "llm": 0,
+        "result": "forecast → table {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 15161.502916999976,
+        "llm": 2,
+        "result": "forecast → table {\"cities\":[\"Tehran\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ok": true
+      },
+      {
+        "ms": 8785.798582999967,
+        "llm": 1,
+        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 8694.571707999916,
+        "llm": 1,
+        "result": "stock_prices → line {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 2492.094999999972,
+        "llm": 0,
+        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "ok": true
+      },
+      {
+        "ms": 7150.028208000003,
+        "llm": 1,
+        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"5d\"}",
+        "ok": true
+      },
+      {
+        "ms": 3924.8905839999206,
+        "llm": 1,
+        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
+        "ok": true
+      },
+      {
+        "ms": 2141.767625000095,
+        "llm": 0,
+        "result": "said: not a data request",
+        "ok": true
+      }
+    ]
+  }
+}

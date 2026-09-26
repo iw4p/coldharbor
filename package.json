@@ -9,8 +9,9 @@
     "build": "pnpm --filter @glance/web build",
     "doctor": "node scripts/doctor.ts",
     "eval-router": "node scripts/eval-router.ts",
-    "typecheck": "tsc -p packages/core && tsc -p packages/source-kit && tsc -p sources/weather && tsc -p sources/markets && tsc -p sources/news && tsc -p apps/web",
-    "inspect": "npx @modelcontextprotocol/inspector"
+    "typecheck": "tsc -p packages/core && tsc -p packages/source-kit && tsc -p sources/weather && tsc -p sources/markets && tsc -p sources/news && tsc -p apps/web && tsc -p scripts",
+    "inspect": "npx @modelcontextprotocol/inspector",
+    "bench": "node scripts/bench.ts"
   },
   "engines": {
     "node": ">=22.18"

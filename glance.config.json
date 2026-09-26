@@ -1,5 +1,5 @@
 {
-  "router": { "type": "kev", "baseUrl": "http://127.0.0.1:8009" },
+  "router": { "type": "hybrid", "baseUrl": "http://127.0.0.1:8009" },
   "llm": { "provider": "ollama", "model": "qwen3.5:latest" },
   "mcpServers": {
     "weather": { "command": "node", "args": ["sources/weather/src/index.ts"] },
