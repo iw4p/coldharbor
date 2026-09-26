@@ -1,6 +1,6 @@
 "use client";
 
-import { labelField, type Frame } from "@glance/core";
+import { labelField, type Frame } from "@coldharbor/core";
 import { motion } from "motion/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { timeAgo } from "../format.ts";

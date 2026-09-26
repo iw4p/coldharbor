@@ -1,10 +1,10 @@
 {
-  "name": "@glance/source-markets",
+  "name": "@coldharbor/source-markets",
   "version": "0.1.0",
   "description": "MCP server: stock prices (Yahoo Finance), crypto prices (CoinGecko) and exchange rates (ECB via Frankfurter). No API keys.",
   "license": "MIT",
   "type": "module",
-  "bin": { "glance-markets": "./src/index.ts" },
+  "bin": { "coldharbor-markets": "./src/index.ts" },
   "scripts": { "start": "node src/index.ts" },
-  "dependencies": { "@glance/source-kit": "workspace:*" }
+  "dependencies": { "@coldharbor/source-kit": "workspace:*" }
 }

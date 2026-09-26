@@ -1,4 +1,4 @@
-import { glance } from "@glance/core/server";
+import { coldharbor } from "@coldharbor/core/server";
 
 export const dynamic = "force-dynamic";
 
@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const { toolId, args } = await req.json();
   try {
-    return Response.json({ frames: await glance().hub.call(toolId, args ?? {}) });
+    return Response.json({ frames: await coldharbor().hub.call(toolId, args ?? {}) });
   } catch (err) {
     return Response.json({ error: (err as Error)?.message ?? String(err) }, { status: 502 });
   }

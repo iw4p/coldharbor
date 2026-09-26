@@ -1,13 +1,13 @@
 /**
  * `pnpm eval-router`: how well does the router pick the right tool and widget?
- * Uses the tools of the MCP servers in glance.config.json and the web app's widget specs.
+ * Uses the tools of the MCP servers in coldharbor.config.json and the web app's widget specs.
  */
-import { glance, THRESHOLDS } from "../packages/core/src/server.ts";
+import { coldharbor, THRESHOLDS } from "../packages/core/src/server.ts";
 import { specs } from "../apps/web/widgets/specs.ts";
 
 import { CASES } from "./cases.ts";
 
-const g = glance();
+const g = coldharbor();
 const tools = await g.hub.list();
 let toolOk = 0, widgetOk = 0, ms = 0;
 for (const { message: msg, tool: want, widget } of CASES) {

@@ -1,4 +1,4 @@
-import type { WidgetSpec } from "@glance/core";
+import type { WidgetSpec } from "@coldharbor/core";
 
 /** Fallback for MCP tools that only return text. */
 export const text: WidgetSpec = {

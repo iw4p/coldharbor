@@ -1,7 +1,7 @@
 {
-  "name": "@glance/core",
+  "name": "@coldharbor/core",
   "version": "0.1.0",
-  "description": "Glance core: the Frame contract, the engine, routers, LLM adapters and the MCP hub.",
+  "description": "ColdHarbor core: the Frame contract, the engine, routers, LLM adapters and the MCP hub.",
   "license": "MIT",
   "type": "module",
   "exports": {

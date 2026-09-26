@@ -5,7 +5,7 @@ import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { views } from "@/widgets/views";
-import type { Catalog } from "./use-glance";
+import type { Catalog } from "./use-coldharbor";
 
 const Dot = ({ ok }: { ok: boolean }) => <span className={cn("inline-block size-2 shrink-0 rounded-full", ok ? "bg-emerald-500" : "bg-rose-500")} />;
 
@@ -75,7 +75,7 @@ export function Sources({ catalog, onOpen }: { catalog: Catalog | null; onOpen()
             <section className="space-y-2">
               <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Add a source</h3>
               <p className="text-xs text-muted-foreground">
-                Add any MCP server to <code className="rounded bg-muted px-1">{catalog.configPath?.split("/").pop() ?? "glance.config.json"}</code>, same format as Claude Desktop, then restart. Tools that return plain JSON or text work too; they become tables and text.
+                Add any MCP server to <code className="rounded bg-muted px-1">{catalog.configPath?.split("/").pop() ?? "coldharbor.config.json"}</code>, same format as Claude Desktop, then restart. Tools that return plain JSON or text work too; they become tables and text.
               </p>
               <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-[11px] leading-relaxed">{SNIPPET}</pre>
             </section>

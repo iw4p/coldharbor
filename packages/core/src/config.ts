@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import type { LLMConfig } from "./llm.ts";
 import type { ServerConfig } from "./mcp.ts";
 
-export interface GlanceConfig {
+export interface ColdHarborConfig {
   /**
    * Which router decides tool + widget.
    * "hybrid": Kev, escalating to the LLM only when Kev is unsure (best accuracy and speed).
@@ -16,17 +16,17 @@ export interface GlanceConfig {
   mcpServers: Record<string, ServerConfig>;
 }
 
-export const CONFIG_FILE = "glance.config.json";
+export const CONFIG_FILE = "coldharbor.config.json";
 
-const DEFAULTS: GlanceConfig = {
+const DEFAULTS: ColdHarborConfig = {
   router: { type: "hybrid", baseUrl: "http://127.0.0.1:8009" },
   llm: { provider: "ollama", model: "qwen3.5:latest" },
   mcpServers: {},
 };
 
-/** Walks up from `from` to find glance.config.json (or uses GLANCE_CONFIG). */
+/** Walks up from `from` to find coldharbor.config.json (or uses COLDHARBOR_CONFIG). */
 export function findConfig(from = process.cwd()): string | undefined {
-  if (process.env.GLANCE_CONFIG) return resolve(process.env.GLANCE_CONFIG);
+  if (process.env.COLDHARBOR_CONFIG) return resolve(process.env.COLDHARBOR_CONFIG);
   for (let dir = resolve(from); ; dir = dirname(dir)) {
     if (existsSync(join(dir, CONFIG_FILE))) return join(dir, CONFIG_FILE);
     if (dirname(dir) === dir) return undefined;
@@ -41,7 +41,7 @@ function interpolate<T>(v: T): T {
   return v;
 }
 
-export function loadConfig(path = findConfig()): { config: GlanceConfig; root: string; path?: string } {
+export function loadConfig(path = findConfig()): { config: ColdHarborConfig; root: string; path?: string } {
   if (!path) return { config: DEFAULTS, root: process.cwd() };
   const raw = interpolate(JSON.parse(readFileSync(path, "utf8")));
   return {

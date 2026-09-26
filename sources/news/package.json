@@ -1,10 +1,10 @@
 {
-  "name": "@glance/source-news",
+  "name": "@coldharbor/source-news",
   "version": "0.1.0",
   "description": "MCP server: worldwide news search (GDELT, with Google News as fallback). No API keys.",
   "license": "MIT",
   "type": "module",
-  "bin": { "glance-news": "./src/index.ts" },
+  "bin": { "coldharbor-news": "./src/index.ts" },
   "scripts": { "start": "node src/index.ts" },
-  "dependencies": { "@glance/source-kit": "workspace:*" }
+  "dependencies": { "@coldharbor/source-kit": "workspace:*" }
 }

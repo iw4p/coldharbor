@@ -1,4 +1,4 @@
-import { glance, type AskInput, type EngineEvent } from "@glance/core/server";
+import { coldharbor, type AskInput, type EngineEvent } from "@coldharbor/core/server";
 import { specs } from "@/widgets/specs.ts";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     async start(ctrl) {
       const send = (e: EngineEvent) => ctrl.enqueue(enc.encode(JSON.stringify(e) + "\n"));
       try {
-        for await (const e of glance().ask(input, specs)) send(e);
+        for await (const e of coldharbor().ask(input, specs)) send(e);
       } catch (err) {
         send({ type: "error", message: (err as Error)?.message ?? String(err) });
       }

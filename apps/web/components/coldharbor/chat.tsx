@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUp, CircleAlert, Loader2, Target, X } from "lucide-react";
 import { cn } from "cn";
-import type { Tile } from "@glance/core";
+import type { Tile } from "@coldharbor/core";
 import { Button } from "@/components/ui/button";
-import type { Message } from "./use-glance";
+import type { Message } from "./use-coldharbor";
 
 const EXAMPLES = [
   "What's the weather in Berlin this week?",

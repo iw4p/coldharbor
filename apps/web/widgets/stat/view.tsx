@@ -1,6 +1,6 @@
 "use client";
 
-import { fieldsOf, labelField, type Frame } from "@glance/core";
+import { fieldsOf, labelField, type Frame } from "@coldharbor/core";
 import { motion } from "motion/react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "cn";

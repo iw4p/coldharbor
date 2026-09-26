@@ -1,8 +1,8 @@
-# Glance
+# ColdHarbor
 
 **Connect any MCP server. Ask in plain words. Watch live widgets appear.**
 
-Glance is a chat-driven dashboard. You plug in data sources (any [MCP](https://modelcontextprotocol.io) server), and when you ask
+ColdHarbor is a chat-driven dashboard. You plug in data sources (any [MCP](https://modelcontextprotocol.io) server), and when you ask
 "weather in Berlin this week" or "compare Apple with Nvidia", it picks the right tool, fills in the arguments, fetches the
 data and draws it with the right widget. Follow up with "as a table", "on a map" or "what about Tehran?" and the canvas updates.
 
@@ -22,7 +22,7 @@ details by any chat model (Ollama by default), data by MCP servers.
                       LLM: fill in the tool's arguments
 ```
 
-- A **source** is any MCP server. It knows nothing about Glance's UI. Glance sources return **Frames** (below);
+- A **source** is any MCP server. It knows nothing about ColdHarbor's UI. ColdHarbor sources return **Frames** (below);
   other MCP servers work too: their JSON becomes a table, their text becomes a text widget.
 - A **widget** is a React component plus a tiny spec: *which frames can I draw?* and *a yes/no question the router
   asks about the message* ("Does the message ask for a map?"). It knows nothing about sources.
@@ -62,7 +62,7 @@ git clone https://github.com/jaredpalmer/kev && cd kev && uv sync --extra serve
 uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b --port 8009
 ```
 
-## Configure: `glance.config.json`
+## Configure: `coldharbor.config.json`
 
 ```jsonc
 {
@@ -80,10 +80,10 @@ uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b --port 8009
 
 ## Add a source
 
-Any MCP server works. To get the best widgets, return Frames. `@glance/source-kit` makes that a few lines:
+Any MCP server works. To get the best widgets, return Frames. `@coldharbor/source-kit` makes that a few lines:
 
 ```ts
-import { defineSource, tool, z } from "@glance/source-kit";
+import { defineSource, tool, z } from "@coldharbor/source-kit";
 
 defineSource({
   name: "earthquakes",
@@ -133,7 +133,7 @@ the LLM fills them from the user's words.
 ## Repo layout
 
 ```
-glance.config.json      what's connected
+coldharbor.config.json      what's connected
 packages/core           Frame contract, engine, routers (Kev / LLM), LLM adapters, MCP hub. No UI.
 packages/source-kit     defineSource(): write a Frame-returning MCP server in a few lines
 sources/weather         Open-Meteo            (no key)

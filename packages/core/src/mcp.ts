@@ -37,7 +37,7 @@ export class McpHub implements ToolRunner {
     if (!c) {
       c = (async () => {
         const cfg = this.servers[name];
-        const client = new Client({ name: "glance", version: "0.1.0" });
+        const client = new Client({ name: "coldharbor", version: "0.1.0" });
         const transport = "url" in cfg
           ? new StreamableHTTPClientTransport(new URL(cfg.url), { requestInit: { headers: cfg.headers } })
           : new StdioClientTransport({ command: cfg.command, args: cfg.args, cwd: cfg.cwd ?? this.root, env: { ...getDefaultEnvironment(), ...cfg.env }, stderr: "pipe" });
@@ -97,7 +97,7 @@ export class McpHub implements ToolRunner {
   }
 }
 
-/** Glance sources return `{ frames }`; anything else is converted as well as we can. */
+/** ColdHarbor sources return `{ frames }`; anything else is converted as well as we can. */
 export function toFrames(structured: unknown, text: string, title: string): Frame[] {
   const frames = (structured as { frames?: unknown[] } | undefined)?.frames;
   if (Array.isArray(frames) && frames.every(isFrame)) return frames as Frame[];

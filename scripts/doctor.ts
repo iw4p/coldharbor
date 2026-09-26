@@ -4,9 +4,9 @@
  *
  *   pnpm doctor weather.forecast '{"cities":["Berlin"]}'
  */
-import { glance } from "../packages/core/src/server.ts";
+import { coldharbor } from "../packages/core/src/server.ts";
 
-const g = glance();
+const g = coldharbor();
 const ok = (b: boolean) => (b ? "✓" : "✗");
 console.log(`config   ${g.configPath ?? "(none found, using defaults)"}`);
 

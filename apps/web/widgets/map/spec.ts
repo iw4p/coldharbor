@@ -1,4 +1,4 @@
-import { hasField, type WidgetSpec } from "@glance/core";
+import { hasField, type WidgetSpec } from "@coldharbor/core";
 
 export const map: WidgetSpec = {
   id: "map",

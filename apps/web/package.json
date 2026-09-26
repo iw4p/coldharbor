@@ -1,5 +1,5 @@
 {
-  "name": "@glance/web",
+  "name": "@coldharbor/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@glance/core": "workspace:*",
+    "@coldharbor/core": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "leaflet": "^1.9.4",

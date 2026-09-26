@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { day, defineSource, tool, getJson, z, type Frame } from "@glance/source-kit";
+import { day, defineSource, tool, getJson, z, type Frame } from "@coldharbor/source-kit";
 
 interface Series { name: string; label: string; unit: string; points: [string, number][]; now?: number }
 

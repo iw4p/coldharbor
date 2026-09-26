@@ -48,7 +48,7 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
 
   const tools = await deps.tools.list();
   if (!tools.length) {
-    yield { type: "error", message: "No tools are connected. Add an MCP server to glance.config.json." };
+    yield { type: "error", message: "No tools are connected. Add an MCP server to coldharbor.config.json." };
     return;
   }
 

@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { MoreHorizontal, RefreshCw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
-import { frameFor, rankWidgets, type Tile } from "@glance/core";
+import { frameFor, rankWidgets, type Tile } from "@coldharbor/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

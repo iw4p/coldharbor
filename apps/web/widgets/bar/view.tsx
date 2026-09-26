@@ -1,6 +1,6 @@
 "use client";
 
-import { fieldsOf, labelField, type Frame } from "@glance/core";
+import { fieldsOf, labelField, type Frame } from "@coldharbor/core";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { color, fmtCompact, fmtNumber, fmtTime, withUnit } from "../format.ts";

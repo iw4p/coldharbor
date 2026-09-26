@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { EngineEvent, Focus, Frame, Tile, TraceStep } from "@glance/core";
+import type { EngineEvent, Focus, Frame, Tile, TraceStep } from "@coldharbor/core";
 
 export type Message =
   | { id: string; role: "user"; text: string }
@@ -25,11 +25,11 @@ export interface Catalog {
   llm: { name: string; up: boolean };
 }
 
-const STORE = "glance:v1";
+const STORE = "coldharbor:v1";
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 /** All client state: tiles on the canvas, the chat, and which tile follow-ups refer to. */
-export function useGlance() {
+export function useColdHarbor() {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [focusId, setFocusId] = useState<string | null>(null);

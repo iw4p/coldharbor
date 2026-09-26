@@ -1,5 +1,5 @@
 /**
- * defineSource(): the smallest way to write a Glance source.
+ * defineSource(): the smallest way to write a ColdHarbor source.
  *
  *   defineSource({
  *     name: "weather",
@@ -13,13 +13,13 @@
  *     },
  *   }).start();
  *
- * The result is a normal MCP server over stdio. Glance draws its frames as widgets;
+ * The result is a normal MCP server over stdio. ColdHarbor draws its frames as widgets;
  * any other MCP client (Claude Desktop, Cursor, …) gets a readable text table.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z, type ZodRawShape } from "zod";
-import type { Field, Frame } from "@glance/core";
+import type { Field, Frame } from "@coldharbor/core";
 
 export { z };
 export type { Field, Frame };
@@ -75,7 +75,7 @@ function toText(f: Frame, maxRows = 25): string {
 
 /** fetch() with one retry on network errors, and a readable error on non-2xx responses. */
 export async function getJson<T = unknown>(url: string, init?: RequestInit): Promise<T> {
-  const opts = { ...init, headers: { "user-agent": "glance-source/0.1", ...init?.headers } };
+  const opts = { ...init, headers: { "user-agent": "coldharbor-source/0.1", ...init?.headers } };
   const res = await fetch(url, opts).catch(async () => {
     await new Promise((r) => setTimeout(r, 800));
     return fetch(url, opts);

@@ -1,6 +1,6 @@
 # Benchmark: routing with and without Kev (System One)
 
-Glance turns a message into *which tool* and *which widget*, then an LLM fills in the tool's arguments. This compares three ways to make that first decision:
+ColdHarbor turns a message into *which tool* and *which widget*, then an LLM fills in the tool's arguments. This compares three ways to make that first decision:
 
 - **Before:** qwen3.5 (a local qwen3.5:latest via ollama) decides the tool and the widget for every message.
 - **Kev:** [Kev](https://github.com/jaredpalmer/kev)'s System One model decides; qwen3.5 only fills in arguments, and is skipped when a message only changes the view.
@@ -26,8 +26,8 @@ Reproduce with `pnpm bench` (needs Kev on http://127.0.0.1:8009 and the LLM runn
 | **Conversation: total time** | **101.9 s** | **54.3 s** (1.9× faster) | **59.6 s** (1.7× faster) |
 | Conversation: LLM calls | 14 | 6 | 7 |
 
-"Confidently wrong" is the error that matters most: the router was sure enough to act, and Glance fetched and drew the wrong data.
-When a router isn't sure, Glance asks you instead, which costs a click, not a wrong answer.
+"Confidently wrong" is the error that matters most: the router was sure enough to act, and ColdHarbor fetched and drew the wrong data.
+When a router isn't sure, ColdHarbor asks you instead, which costs a click, not a wrong answer.
 
 ## By kind of message (tool and view both right)
 
@@ -39,7 +39,7 @@ When a router isn't sure, Glance asks you instead, which costs a click, not a wr
 
 ## Every routing decision
 
-✓ right · ✗ wrong but safe (Glance asks, or keeps the current tile) · ✗✗ confidently wrong · ↗ escalated to qwen3.5
+✓ right · ✗ wrong but safe (ColdHarbor asks, or keeps the current tile) · ✗✗ confidently wrong · ↗ escalated to qwen3.5
 
 | Message | Expected | Before: qwen3.5 routes | Kev routes | Kev + qwen3.5 when unsure |
 |---|---|---|---|---|

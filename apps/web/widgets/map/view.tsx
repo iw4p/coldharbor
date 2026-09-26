@@ -5,7 +5,7 @@ import L from "leaflet";
 import { useEffect } from "react";
 import { MapContainer, Marker, Popup, TileLayer, CircleMarker, useMap } from "react-leaflet";
 import { useTheme } from "@/lib/theme";
-import { fieldsOf, labelField, type Frame } from "@glance/core";
+import { fieldsOf, labelField, type Frame } from "@coldharbor/core";
 import { fmtNumber } from "../format.ts";
 
 function Fit({ points }: { points: [number, number][] }) {
@@ -48,7 +48,7 @@ export default function MapView({ frame }: { frame: Frame }) {
           <Marker key={i} position={points[i]} icon={L.divIcon({
             className: "",
             iconSize: [0, 0],
-            html: `<div class="glance-pin"><b>${fmtNumber(v)}${value?.unit ?? ""}</b> ${name.replace(/</g, "&lt;")}</div>`,
+            html: `<div class="coldharbor-pin"><b>${fmtNumber(v)}${value?.unit ?? ""}</b> ${name.replace(/</g, "&lt;")}</div>`,
           })}>{popup}</Marker>
         ) : (
           <CircleMarker key={i} center={points[i]} radius={5 + 20 * Math.sqrt(Math.abs(Number(v) || 0) / max)}

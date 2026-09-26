@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Chat } from "./chat";
 import { Sources } from "./sources";
 import { TileCard } from "./tile";
-import { useGlance } from "./use-glance";
+import { useColdHarbor } from "./use-coldharbor";
 
-export function GlanceApp() {
-  const g = useGlance();
+export function ColdHarborApp() {
+  const g = useColdHarbor();
   const { resolvedTheme, setTheme } = useTheme();
   const focus = g.tiles.find((t) => t.id === g.focusId);
 
@@ -24,7 +24,7 @@ export function GlanceApp() {
       <aside className="flex min-h-0 flex-col border-r bg-card/60 max-md:h-[45dvh] max-md:border-b max-md:border-r-0">
         <div className="flex items-center gap-2 border-b px-4 py-3">
           <Logo />
-          <span className="font-semibold tracking-tight">Glance</span>
+          <span className="font-semibold tracking-tight">ColdHarbor</span>
           <div className="ml-auto flex items-center gap-1">
             <Button variant="ghost" size="icon" className="size-8" aria-label="Toggle theme" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
               <Sun className="hidden size-4 dark:block" />
@@ -38,7 +38,7 @@ export function GlanceApp() {
         <Chat messages={g.messages} busy={g.busy} focus={focus} onAsk={g.ask} onClearFocus={() => g.setFocusId(null)} onShowTile={showTile} />
       </aside>
 
-      <main className="glance-canvas min-h-0 overflow-y-auto">
+      <main className="coldharbor-canvas min-h-0 overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background/70 px-5 py-2.5 backdrop-blur">
           <span className="text-sm text-muted-foreground">{g.tiles.length ? `${g.tiles.length} tile${g.tiles.length === 1 ? "" : "s"}` : "Canvas"}</span>
           <div className="ml-auto flex items-center gap-2">
@@ -85,14 +85,14 @@ function Logo() {
   );
 }
 
-function Empty({ catalog, onAsk }: { catalog: ReturnType<typeof useGlance>["catalog"]; onAsk(t: string): void }) {
+function Empty({ catalog, onAsk }: { catalog: ReturnType<typeof useColdHarbor>["catalog"]; onAsk(t: string): void }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center px-6 pt-[12vh] text-center">
       <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl font-semibold tracking-tight">
         Ask. Watch it appear.
       </motion.h1>
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mt-3 text-muted-foreground">
-        Glance connects to MCP servers, understands what you want, and draws it with the right widget.
+        ColdHarbor connects to MCP servers, understands what you want, and draws it with the right widget.
         Follow up with &ldquo;as a table&rdquo; or &ldquo;what about Tehran?&rdquo;.
       </motion.p>
       <div className="mt-8 grid w-full grid-cols-1 gap-2 sm:grid-cols-2">

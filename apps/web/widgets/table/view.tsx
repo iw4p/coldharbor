@@ -1,6 +1,6 @@
 "use client";
 
-import type { Frame } from "@glance/core";
+import type { Frame } from "@coldharbor/core";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { fmtNumber, fmtTime, withUnit } from "../format.ts";
 

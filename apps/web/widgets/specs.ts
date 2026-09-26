@@ -4,7 +4,7 @@
  *
  * To add a widget: create widgets/<id>/spec.ts + view.tsx, then add it here and in views.tsx.
  */
-import type { WidgetSpec } from "@glance/core";
+import type { WidgetSpec } from "@coldharbor/core";
 import { bar } from "./bar/spec.ts";
 import { feed } from "./feed/spec.ts";
 import { line } from "./line/spec.ts";

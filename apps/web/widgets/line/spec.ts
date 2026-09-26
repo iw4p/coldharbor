@@ -1,4 +1,4 @@
-import { fieldsOf, hasField, type WidgetSpec } from "@glance/core";
+import { fieldsOf, hasField, type WidgetSpec } from "@coldharbor/core";
 
 export const line: WidgetSpec = {
   id: "line",

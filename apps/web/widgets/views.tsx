@@ -6,7 +6,7 @@
  */
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
-import type { Frame } from "@glance/core";
+import type { Frame } from "@coldharbor/core";
 import { BarChart3, FileText, LineChart, List, Map, SquareStack, Table2, type LucideIcon } from "lucide-react";
 import BarView from "./bar/view";
 import FeedView from "./feed/view";

@@ -120,7 +120,7 @@ const speedup = (k: string, field: "p50" | "convoMs") => (k === "before" ? "" : 
 
 const md = `# Benchmark: routing with and without Kev (System One)
 
-Glance turns a message into *which tool* and *which widget*, then an LLM fills in the tool's arguments. This compares three ways to make that first decision:
+ColdHarbor turns a message into *which tool* and *which widget*, then an LLM fills in the tool's arguments. This compares three ways to make that first decision:
 
 - **Before:** ${base.name} (a local ${config.llm.model} via ${config.llm.provider}) decides the tool and the widget for every message.
 - **Kev:** [Kev](https://github.com/jaredpalmer/kev)'s System One model decides; ${base.name} only fills in arguments, and is skipped when a message only changes the view.
@@ -146,8 +146,8 @@ ${row("Messages sent to the LLM for routing", (s) => (s === S.before ? `${s.n}/$
 | **Conversation: total time** | ${keys.map((k) => `**${secs(S[k].convoMs)}**${speedup(k, "convoMs")}`).join(" | ")} |
 ${row("Conversation: LLM calls", (s) => String(s.convoLlm))}
 
-"Confidently wrong" is the error that matters most: the router was sure enough to act, and Glance fetched and drew the wrong data.
-When a router isn't sure, Glance asks you instead, which costs a click, not a wrong answer.
+"Confidently wrong" is the error that matters most: the router was sure enough to act, and ColdHarbor fetched and drew the wrong data.
+When a router isn't sure, ColdHarbor asks you instead, which costs a click, not a wrong answer.
 
 ## By kind of message (tool and view both right)
 
@@ -157,7 +157,7 @@ ${(["direct", "follow-up", "off-topic"] as const).map((k) => `| ${k} (${CASES.fi
 
 ## Every routing decision
 
-✓ right · ✗ wrong but safe (Glance asks, or keeps the current tile) · ✗✗ confidently wrong · ↗ escalated to ${base.name}
+✓ right · ✗ wrong but safe (ColdHarbor asks, or keeps the current tile) · ✗✗ confidently wrong · ↗ escalated to ${base.name}
 
 | Message | Expected | ${variants.map((v) => v.label).join(" | ")} |
 |---|---|${keys.map(() => "---").join("|")}|

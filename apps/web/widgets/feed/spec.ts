@@ -1,4 +1,4 @@
-import { hasField, labelField, type WidgetSpec } from "@glance/core";
+import { hasField, labelField, type WidgetSpec } from "@coldharbor/core";
 
 export const feed: WidgetSpec = {
   id: "feed",

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { defineSource, tool, getJson, z, type Frame } from "@glance/source-kit";
+import { defineSource, tool, getJson, z, type Frame } from "@coldharbor/source-kit";
 
 type Geo = { results?: { name: string; country_code: string; latitude: number; longitude: number }[] };
 type Forecast = {

@@ -20,7 +20,7 @@ importers:
       '@base-ui/react':
         specifier: ^1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@glance/core':
+      '@coldharbor/core':
         specifier: workspace:*
         version: link:../../packages/core
       class-variance-authority:
@@ -100,7 +100,7 @@ importers:
 
   packages/source-kit:
     dependencies:
-      '@glance/core':
+      '@coldharbor/core':
         specifier: workspace:*
         version: link:../core
       '@modelcontextprotocol/sdk':
@@ -119,19 +119,19 @@ importers:
 
   sources/markets:
     dependencies:
-      '@glance/source-kit':
+      '@coldharbor/source-kit':
         specifier: workspace:*
         version: link:../../packages/source-kit
 
   sources/news:
     dependencies:
-      '@glance/source-kit':
+      '@coldharbor/source-kit':
         specifier: workspace:*
         version: link:../../packages/source-kit
 
   sources/weather:
     dependencies:
-      '@glance/source-kit':
+      '@coldharbor/source-kit':
         specifier: workspace:*
         version: link:../../packages/source-kit
 

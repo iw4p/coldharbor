@@ -9,7 +9,7 @@ const sans = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Glance",
+  title: "ColdHarbor",
   description: "Connect any MCP server, ask in plain words, and watch live widgets appear.",
 };
 

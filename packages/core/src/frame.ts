@@ -67,7 +67,7 @@ const scalar = (v: unknown): Value =>
 
 /**
  * Best-effort conversion of arbitrary JSON into a Frame, so MCP servers that know
- * nothing about Glance still show up as tables, charts or maps.
+ * nothing about ColdHarbor still show up as tables, charts or maps.
  */
 export function inferFrame(data: unknown, title: string): Frame {
   if (Array.isArray(data) && data.length && data.every((r) => r && typeof r === "object" && !Array.isArray(r))) {

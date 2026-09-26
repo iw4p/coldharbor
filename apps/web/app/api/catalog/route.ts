@@ -1,4 +1,4 @@
-import { glance } from "@glance/core/server";
+import { coldharbor } from "@coldharbor/core/server";
 import { specs } from "@/widgets/specs.ts";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ async function reachable(url: string) {
 
 /** Everything connected: MCP servers and their tools, widgets, router and LLM health. */
 export async function GET() {
-  const g = glance();
+  const g = coldharbor();
   const tools = await g.hub.list();
   const { router, llm } = g.config;
   const [routerUp, llmUp] = await Promise.all([

@@ -1,4 +1,4 @@
-import type { Field, Value } from "@glance/core";
+import type { Field, Value } from "@coldharbor/core";
 
 const compact = new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 });
 

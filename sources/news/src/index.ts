@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { defineSource, tool, z, type Frame } from "@glance/source-kit";
+import { defineSource, tool, z, type Frame } from "@coldharbor/source-kit";
 import { CENTROIDS } from "./centroids.ts";
 
 interface Article { time: string; title: string; url: string; source: string; country: string; language: string }
