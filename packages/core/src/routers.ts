@@ -2,6 +2,7 @@ import type { LLM, RouteDecision, Router, ToolInfo, WidgetSpec } from "./types.t
 
 const SUBJECT = "Does the message name a specific place, company, coin, currency, topic, person or time period?";
 const FOLLOW_UP = "Does the message ask to change or adjust the previous result, for example a different time range, place or item?";
+const ABOUT_ME = "Does the message ask about the user's own account or things, using words like my, mine or me?";
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
 /** The first sentence: tool descriptions often go on for paragraphs, and every token costs time. */
@@ -47,6 +48,10 @@ export function kevRouter(opts: { baseUrl: string; apiKey?: string }): Router {
 
   return {
     name: "Kev",
+    async yesNo(message, questions) {
+      const a = await ask(message, Object.fromEntries(questions.map((q, i) => [`q${i}`, { type: "noul", instructions: q }])));
+      return questions.map((_, i) => a[`q${i}`].noul as number);
+    },
     async route(message: string, tools: ToolInfo[], widgets: WidgetSpec[]): Promise<RouteDecision> {
       const t0 = Date.now();
       const byServer = new Map<string, ToolInfo[]>();
@@ -61,6 +66,7 @@ export function kevRouter(opts: { baseUrl: string; apiKey?: string }): Router {
               criteria: { ...Object.fromEntries(tools.map((t) => [t.id, toolOption(t)])), none: "the message does not ask for any of these" } } }),
         subject: { type: "noul", instructions: SUBJECT },
         followup: { type: "noul", instructions: FOLLOW_UP },
+        self: { type: "noul", instructions: ABOUT_ME },
         // One yes/no question per widget is much sharper than one multiple-choice question.
         ...Object.fromEntries(widgets.map((w) => [`widget:${w.id}`, { type: "noul", instructions: w.ask }])),
       });
@@ -69,6 +75,7 @@ export function kevRouter(opts: { baseUrl: string; apiKey?: string }): Router {
         widgets: Object.fromEntries(widgets.map((w) => [w.id, a[`widget:${w.id}`].noul])),
         newSubject: a.subject.noul,
         followUp: a.followup.noul,
+        aboutMe: a.self.noul,
       };
 
       if (!twoStep) {
@@ -100,7 +107,8 @@ export function kevRouter(opts: { baseUrl: string; apiKey?: string }): Router {
 export function hybridRouter(kev: Router, llm: Router, opts = { toolThreshold: 0.55, viewOnly: 0.75, subject: 0.5, offTopic: 0.85 }): Router {
   return {
     name: "Kev + LLM",
-    async route(message, tools, widgets) {
+    yesNo: kev.yesNo?.bind(kev),
+    async route(message, tools, widgets, context) {
       const k = await kev.route(message, tools, widgets);
       const sure = (k.tools[0]?.p ?? 0) >= opts.toolThreshold;
       const viewOnly = Math.max(0, ...Object.values(k.widgets)) >= opts.viewOnly && k.newSubject < opts.subject;
@@ -113,8 +121,8 @@ export function hybridRouter(kev: Router, llm: Router, opts = { toolThreshold: 0
       let candidates = tools.filter((t) => k.shortlist?.includes(t.id));
       if (!candidates.length && top) candidates = tools.filter((t) => t.server === top);
       if (!candidates.length) candidates = tools;
-      const l = await llm.route(message, candidates, widgets);
-      return { ...l, widgets: k.widgets, newSubject: k.newSubject, followUp: k.followUp, servers: k.servers, by: `Kev → ${l.by} (${candidates.length} tools)`, ms: k.ms + l.ms };
+      const l = await llm.route(message, candidates, widgets, context);
+      return { ...l, widgets: k.widgets, newSubject: k.newSubject, followUp: k.followUp, aboutMe: k.aboutMe, servers: k.servers, by: `Kev → ${l.by} (${candidates.length} tools)`, ms: k.ms + l.ms };
     },
   };
 }
@@ -123,17 +131,19 @@ export function hybridRouter(kev: Router, llm: Router, opts = { toolThreshold: 0
 export function llmRouter(llm: LLM): Router {
   return {
     name: `${llm.name} router`,
-    async route(message, tools, widgets) {
+    async route(message, tools, widgets, context) {
       const t0 = Date.now();
       const out = (await llm.json(
         `You route a user's message to one data tool and optionally a display widget. Reply with JSON only:\n` +
-          `{"tool": "<tool id or null>", "confidence": 0-1, "widget": "<widget id the user explicitly asked for, or null>", "new_subject": true|false, "adjusts_previous": true|false}\n` +
+          `{"tool": "<tool id or null>", "confidence": 0-1, "widget": "<widget id the user explicitly asked for, or null>", "new_subject": true|false, "adjusts_previous": true|false, "about_me": true|false}\n` +
           `Tools:\n${tools.map((t) => `- ${t.id}: ${t.title}. ${t.description}`).join("\n")}\n` +
           `Widgets:\n${widgets.map((w) => `- ${w.id}: ${w.name}`).join("\n")}\n` +
           `new_subject is true when the message names a place, company, coin, currency, topic, person or time period. ` +
-          `adjusts_previous is true when the message changes a previous result, like "and for the last 5 days?".`,
+          `adjusts_previous is true when the message changes a previous result, like "and for the last 5 days?". ` +
+          `about_me is true when the message is about the user's own account or things ("my", "mine", "me").` +
+          (context ? `\nContext: ${context}. Short follow-ups ("and the issues?", "what about X?") usually mean the same place or thing.` : ""),
         message,
-      )) as { tool?: string | null; confidence?: number; widget?: string | null; new_subject?: boolean; adjusts_previous?: boolean };
+      )) as { tool?: string | null; confidence?: number; widget?: string | null; new_subject?: boolean; adjusts_previous?: boolean; about_me?: boolean };
       const p = Math.max(0, Math.min(1, Number(out.confidence ?? 0.8)));
       const chosen = tools.find((t) => t.id === out.tool);
       return {
@@ -144,6 +154,7 @@ export function llmRouter(llm: LLM): Router {
         widgets: Object.fromEntries(widgets.map((w) => [w.id, w.id === out.widget ? 0.9 : 0])),
         newSubject: out.new_subject ? 0.9 : 0.1,
         followUp: out.adjusts_previous ? 0.9 : 0.1,
+        aboutMe: out.about_me ? 0.9 : 0.1,
       };
     },
   };

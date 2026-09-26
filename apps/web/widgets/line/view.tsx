@@ -1,13 +1,13 @@
 "use client";
 
-import { fieldsOf, type Frame, type Value } from "@coldharbor/core";
+import { measures, type Frame, type Value } from "@coldharbor/core";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { color, fmtCompact, fmtNumber, fmtTime, rebase, shouldRebase, withUnit } from "../format.ts";
 
 export default function LineView({ frame }: { frame: Frame }) {
   const time = frame.fields.find((f) => f.type === "time")!;
-  const nums = fieldsOf(frame, "number").slice(0, 6);
+  const nums = measures(frame).slice(0, 6);
   // Recharts keys become CSS variable names, so use safe ones.
   const keys = nums.map((_, i) => `s${i}`);
   let data: Record<string, Value>[] = frame.rows.map((r) => ({ t: r[time.name], ...Object.fromEntries(nums.map((f, i) => [keys[i], r[f.name]])) }));

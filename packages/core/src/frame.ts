@@ -35,6 +35,12 @@ export const fieldsOf = (f: Frame, ...types: FieldType[]) => f.fields.filter((x)
 export const hasField = (f: Frame, type: FieldType) => f.fields.some((x) => x.type === type);
 export const labelOf = (field: Field) => field.label ?? field.name;
 
+/** Numbers that name things rather than measure them (an issue number, an id, a rank). */
+const IDENTIFIER = /(^|\.)(number|id|index|no|num|rank|position|order|pk|key)$|_id$/i;
+
+/** Number fields worth charting or showing as a big number: measurements, not identifiers. */
+export const measures = (f: Frame) => f.fields.filter((x) => x.type === "number" && !IDENTIFIER.test(x.name));
+
 /** The field that names each row: the declared one, else the first plain string field. */
 export function labelField(f: Frame): Field | undefined {
   return f.fields.find((x) => x.name === f.labelField) ?? f.fields.find((x) => x.type === "string");

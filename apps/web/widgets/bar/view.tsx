@@ -1,6 +1,6 @@
 "use client";
 
-import { fieldsOf, labelField, type Frame } from "@coldharbor/core";
+import { labelField, measures, type Frame } from "@coldharbor/core";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { color, fmtCompact, fmtNumber, fmtTime, withUnit } from "../format.ts";
@@ -8,7 +8,7 @@ import { color, fmtCompact, fmtNumber, fmtTime, withUnit } from "../format.ts";
 export default function BarView({ frame }: { frame: Frame }) {
   const time = frame.fields.find((f) => f.type === "time");
   const x = time ?? labelField(frame)!;
-  const nums = fieldsOf(frame, "number").slice(0, 4);
+  const nums = measures(frame).slice(0, 4);
   const keys = nums.map((_, i) => `s${i}`);
   const data = frame.rows.slice(0, 40).map((r) => ({ x: r[x.name], ...Object.fromEntries(nums.map((f, i) => [keys[i], r[f.name]])) }));
   const config: ChartConfig = Object.fromEntries(nums.map((f, i) => [keys[i], { label: withUnit(f), color: color(i) }]));

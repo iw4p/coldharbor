@@ -121,8 +121,11 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
   const rank = (f: Field) =>
     f === label ? 0 : f === group ? 1 : leaf(f.name) === "number" ? 2 : f.type === "time" ? 3 : f.type === "string" ? 4 : f.type === "number" ? 5 : f.type === "url" ? 6 : 7;
   fields = fields.sort((a, b) => rank(a) - rank(b));
-  const text = fields.filter((f) => f.type === "text");
-  fields = [...fields.filter((f) => f.type !== "text").slice(0, MAX_FIELDS), ...text.slice(0, 2)];
+  // Cap the columns, but never drop the title, link or status: widgets depend on them.
+  const roles = fields.filter((f) => keep.has(f.name));
+  const rest = fields.filter((f) => !keep.has(f.name) && f.type !== "text").slice(0, Math.max(0, MAX_FIELDS - roles.length));
+  const text = fields.filter((f) => f.type === "text" && !keep.has(f.name)).slice(0, 2);
+  fields = [...roles, ...rest, ...text].sort((a, b) => rank(a) - rank(b));
   // Label nested fields by their last part ("created at"), adding the parent only when two would clash.
   const clash = new Set(fields.map((f) => leaf(f.name)).filter((l, i, all) => all.indexOf(l) !== i));
   for (const f of fields) if (f.name.includes(".")) f.label = (clash.has(leaf(f.name)) ? f.name.split(".").slice(-2).join(" ") : leaf(f.name)).replace(/_/g, " ");

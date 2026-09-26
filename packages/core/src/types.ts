@@ -77,12 +77,25 @@ export interface RouteDecision {
   servers?: { id: string; p: number }[];
   /** A few likely tools, for a second opinion when the router is unsure. */
   shortlist?: string[];
+  /** Probability the message is about the user's own things ("my PRs", "who am I"). */
+  aboutMe?: number;
+}
+
+/** A required tool argument the user still has to give. */
+export interface InputField {
+  name: string;
+  description?: string;
+  type?: string;
+  enum?: string[];
 }
 
 /** Decides which tool and widget a message is about. Kev and an LLM both implement it. */
 export interface Router {
   name: string;
-  route(message: string, tools: ToolInfo[], widgets: WidgetSpec[]): Promise<RouteDecision>;
+  /** `context` says what the user is looking at, for follow-ups like "and the issues?". */
+  route(message: string, tools: ToolInfo[], widgets: WidgetSpec[], context?: string): Promise<RouteDecision>;
+  /** Calibrated yes/no answers about a message, one probability per question (routers backed by Kev). */
+  yesNo?(message: string, questions: string[]): Promise<number[]>;
 }
 
 /** Any chat model that can answer with JSON. */
@@ -102,6 +115,8 @@ export type EngineEvent =
   | { type: "clarify"; question: string; options: { toolId: string; label: string; p: number }[] }
   /** The tool can change things, so the user has to approve this exact call first. */
   | { type: "confirm"; toolId: string; title: string; args: Args; readOnly: boolean }
+  /** Required arguments are still missing: ask for them instead of guessing. */
+  | { type: "needs-input"; toolId: string; title: string; args: Args; fields: InputField[]; readOnly: boolean }
   | { type: "tile"; tile: Tile; replaces?: string }
   | { type: "say"; text: string }
   | { type: "error"; message: string };

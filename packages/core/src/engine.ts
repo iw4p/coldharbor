@@ -1,5 +1,5 @@
-import type { Frame } from "./frame.ts";
-import type { Args, EngineEvent, Focus, LLM, Router, Tile, ToolInfo, ToolRunner, TraceStep, WidgetSpec } from "./types.ts";
+import { labelField, type Frame, type Value } from "./frame.ts";
+import type { Args, EngineEvent, Focus, InputField, LLM, Router, Tile, ToolInfo, ToolRunner, TraceStep, WidgetSpec } from "./types.ts";
 
 export interface EngineDeps {
   router: Router;
@@ -13,8 +13,10 @@ export interface AskInput {
   focus?: Focus;
   /** Set when the user answered a clarifying question. */
   forceTool?: string;
-  /** Set when the user approved a tool call that needed confirmation. */
+  /** Set when the user approved a tool call that needed confirmation, or filled in missing arguments. */
   confirmed?: { toolId: string; args: Args };
+  /** Argument values used earlier in the conversation (e.g. by tiles on the canvas), newest winning. */
+  known?: Args;
 }
 
 /** How sure the router must be before we act without asking. */
@@ -67,7 +69,8 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
   }
 
   // 1 · Route
-  const r = await deps.router.route(message, tools, deps.widgets);
+  const context = focus ? `the user is looking at "${focus.frames[0]?.title ?? focus.toolId}" from ${focus.toolId} ${JSON.stringify(focus.args)}` : undefined;
+  const r = await deps.router.route(message, tools, deps.widgets, context);
   const [askedWidget, askedP] = top(r.widgets);
   const best = r.tools[0];
   yield step(r.by, `tool ${r.tools.slice(0, 3).map((t) => `${t.id} ${pct(t.p)}`).join(" · ")}` +
@@ -109,9 +112,34 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
     reused = true;
     yield step("engine", "only a view change, so no LLM call and no new data");
   } else {
+    // "my …": ask the server who the user is (once per server), so the LLM can fill in their username.
+    let me: Record<string, Value> | undefined;
+    const idTool = (r.aboutMe ?? 0) >= 0.5 && !isIdentityTool(tool) ? tools.find((t) => t.server === tool.server && t.autoRun && isIdentityTool(t)) : undefined;
+    if (idTool) {
+      const t0 = Date.now();
+      me = identities.get(tool.server) ?? (await whoAmI(deps.tools, idTool));
+      identities.set(tool.server, me);
+      yield step(tool.server, `${idTool.name} → you are ${Object.values(me)[0] ?? "?"}`, Date.now() - t0);
+    }
     const t0 = Date.now();
-    args = await fillArgs(deps.llm, tool, message, same ? focus!.args : undefined);
+    const known = relevant(input.known, tool);
+    args = await fillArgs(deps.llm, tool, message, same ? focus!.args : undefined, known, me);
+    // Values nobody gave: small LLMs fill "owner" with a famous repo rather than leave it empty.
+    const invented = await ungrounded(deps.router, tool, args, message, [known, me, same ? focus!.args : undefined]);
+    if (invented.length) {
+      for (const k of invented) delete args[k];
+      yield step("engine", `dropped ${invented.map((k) => k).join(", ")}: not in your message or the conversation`);
+    }
+    // Required values the LLM left out but the conversation already has ("and the issues?" after naming a repo).
+    for (const k of tool.inputSchema.required ?? []) if ((args[k] == null || args[k] === "") && known[k] != null) args[k] = known[k];
     yield step(deps.llm.name, JSON.stringify(args), Date.now() - t0);
+    // Required arguments nobody gave: ask, don't guess.
+    const missing = missingArgs(tool, args);
+    if (missing.length) {
+      yield step("engine", `${tool.name} needs ${missing.map((f) => f.name).join(", ")}, so asking`);
+      yield { type: "needs-input", toolId, title: tool.title, args, fields: missing, readOnly: tool.readOnly };
+      return;
+    }
     if (!tool.autoRun && !(same && sameArgs(args, focus!.args))) {
       yield step("engine", `${tool.name} ${tool.readOnly ? "isn't set to run automatically" : "can change things"}, so asking first`);
       yield { type: "confirm", toolId, title: tool.title, args, readOnly: tool.readOnly };
@@ -193,7 +221,75 @@ function titled(frames: Frame[], tool: ToolInfo, args: Args): Frame[] {
   return frames.map((f) => (f.title === tool.name || f.title.startsWith(`${tool.name} · `) ? { ...f, title: f.title.replace(tool.name, nice) } : f));
 }
 
-async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Args): Promise<Args> {
+/** Answers from each server's "who am I" tool, for the life of the process. */
+const identities = new Map<string, Record<string, Value>>();
+
+/**
+ * A server's "who am I" tool: read-only, needs no arguments, and says so in its name or description
+ * (get_me, whoami, current_user, viewer…). Any server can have one; none is special-cased.
+ */
+export function isIdentityTool(t: ToolInfo) {
+  if (!t.readOnly || t.inputSchema.required?.length) return false;
+  return /(^|[_\-.])(me|whoami|current_?user|viewer|self|my_?(profile|account|user))($|[_\-.])/i.test(t.name)
+    || /\b(authenticated|current|logged[- ]in|signed[- ]in) user\b|\bwho (i am|you are)\b/i.test(t.description);
+}
+
+/** The first record the identity tool returns, reduced to short values (login, name, …). */
+async function whoAmI(runner: ToolRunner, idTool: ToolInfo): Promise<Record<string, Value>> {
+  const [f] = await runner.call(idTool.id, {});
+  const row = f?.rows[0] ?? {};
+  const label = f && labelField(f)?.name;
+  const short = Object.entries(row).filter(([, v]) => v != null && String(v).length <= 60 && !/^https?:/.test(String(v)));
+  if (label) short.sort(([a], [b]) => (a === label ? -1 : b === label ? 1 : 0));
+  return Object.fromEntries(short.slice(0, 8));
+}
+
+/** Only the remembered values whose names this tool actually takes. */
+function relevant(known: Args | undefined, tool: ToolInfo): Args {
+  const props = tool.inputSchema.properties ?? {};
+  return Object.fromEntries(Object.entries(known ?? {}).filter(([k, v]) => k in props && v != null && typeof v !== "object"));
+}
+
+/**
+ * Text arguments the LLM filled in that nothing supports. A value counts as made up only when
+ * (1) none of its words appear in the message, the conversation or the user's identity, and
+ * (2) Kev, asked "Does the message say which <argument> to use?", says no. (1) alone would reject
+ * good conversions like "Apple" → "AAPL"; (2) keeps them. Allowed values (enums) are never dropped.
+ */
+async function ungrounded(router: Router, tool: ToolInfo, args: Args, message: string, context: unknown[]): Promise<string[]> {
+  const props = tool.inputSchema.properties ?? {};
+  const seen = (message + " " + JSON.stringify(context)).toLowerCase();
+  const words = (v: string) => v.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3);
+  const suspects = Object.entries(args).filter(([k, v]) => {
+    const p = (props[k] ?? {}) as { enum?: unknown[]; default?: unknown };
+    if (typeof v !== "string" || !v || p.enum?.includes(v) || p.default === v) return false;
+    const ws = words(v);
+    return ws.length > 0 && !ws.some((w) => seen.includes(w));
+  }).map(([k]) => k);
+  if (!suspects.length) return [];
+  if (!router.yesNo) return suspects;
+  const about = (k: string) => {
+    const d = ((props[k] ?? {}) as { description?: string }).description;
+    return d ? `${d.split(/(?<=[.!?])\s/)[0].replace(/\.$/, "").toLowerCase()} (${k})` : k.replace(/_/g, " ");
+  };
+  const ps = await router.yesNo(message, suspects.map((k) => `Does the message say which ${about(k)} to use?`));
+  return suspects.filter((_, i) => ps[i] < 0.5);
+}
+
+/** A value an LLM writes when it doesn't know: "<owner>", "unknown", "your_username"… */
+const PLACEHOLDER = /^(<.*>|\{.*\}|unknown|none|null|n\/a|tbd|\?+|your[_ -].*|example.*|placeholder.*)$/i;
+
+function missingArgs(tool: ToolInfo, args: Args): InputField[] {
+  const props = tool.inputSchema.properties ?? {};
+  return (tool.inputSchema.required ?? [])
+    .filter((k) => args[k] == null || args[k] === "" || (typeof args[k] === "string" && PLACEHOLDER.test((args[k] as string).trim())))
+    .map((k) => {
+      const p = (props[k] ?? {}) as { description?: string; type?: string; enum?: unknown[] };
+      return { name: k, description: p.description, type: p.type, enum: p.enum?.map(String) };
+    });
+}
+
+async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Args, known?: Args, me?: Record<string, Value>): Promise<Args> {
   const props = tool.inputSchema.properties ?? {};
   if (!Object.keys(props).length) return {};
   const system =
@@ -202,7 +298,13 @@ async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Ar
     `Reply with the arguments as a JSON object and nothing else. If the message doesn't mention a value, keep the previous value or use a sensible default. ` +
     `"what about X?", "and in X?" or "now X" means replace the previous value with X. ` +
     `"compare with X", "X vs Y", "X and Y" or "add X" means include both.`;
-  const user = `Previous arguments: ${previous ? JSON.stringify(previous) : "none"}\nMessage: ${message}`;
+  const user = [
+    `Previous arguments: ${previous ? JSON.stringify(previous) : "none"}`,
+    known && Object.keys(known).length ? `Values used earlier in this conversation (use them when the message refers to the same thing or doesn't say): ${JSON.stringify(known)}` : "",
+    me ? `The user is ${JSON.stringify(me)}. "my", "mine" and "me" refer to this user.` : "",
+    `If a required value is unknown, leave it out rather than inventing one.`,
+    `Message: ${message}`,
+  ].filter(Boolean).join("\n");
   const out = (await llm.json(system, user)) as Args;
   const args: Args = { ...(previous ?? {}) };
   for (const k of Object.keys(props)) if (out?.[k] !== undefined && out[k] !== null) args[k] = out[k];

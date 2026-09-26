@@ -99,6 +99,9 @@ export function Chat({ messages, busy, focus, onAsk, onCancel, onClearFocus, onS
                       </div>
                     </div>
                   )}
+                  {m.status === "needs-input" && m.needsInput && (
+                    <NeedsInput run={m.needsInput} busy={busy} onRun={(args) => onAsk(m.message, { confirmed: { toolId: m.needsInput!.toolId, args }, replyTo: m.id })} onCancel={() => onCancel(m.id)} />
+                  )}
                   {m.status === "cancelled" && <div className="text-xs text-muted-foreground">Cancelled. Nothing was run.</div>}
                   {m.status === "clarify" && m.clarify && (
                     <div className="rounded-lg bg-amber-500/10 px-3 py-2.5 text-sm">
@@ -154,5 +157,49 @@ export function Chat({ messages, busy, focus, onAsk, onCancel, onClearFocus, onS
         </form>
       </div>
     </div>
+  );
+}
+
+/** A small form for required arguments nobody gave, built from the tool's input schema. */
+function NeedsInput({ run, busy, onRun, onCancel }: {
+  run: NonNullable<Extract<Message, { role: "run" }>["needsInput"]>;
+  busy: boolean;
+  onRun(args: Record<string, unknown>): void;
+  onCancel(): void;
+}) {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const ready = run.fields.every((f) => values[f.name]?.trim());
+  const submit = () => {
+    const filled = Object.fromEntries(run.fields.map((f) => {
+      const v = values[f.name].trim();
+      return [f.name, f.type === "number" || f.type === "integer" ? Number(v) : f.type === "boolean" ? v === "true" : v];
+    }));
+    onRun({ ...run.args, ...filled });
+  };
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); if (ready) submit(); }} className="rounded-lg border bg-muted/40 px-3 py-2.5 text-sm">
+      <div className="font-medium">{run.title} needs a bit more</div>
+      <div className="mt-2 space-y-2">
+        {run.fields.map((f, i) => (
+          <label key={f.name} className="block">
+            <span className="text-xs text-muted-foreground">{f.name.replace(/_/g, " ")}{f.description ? ` · ${f.description.slice(0, 90)}` : ""}</span>
+            {f.enum?.length ? (
+              <select className="mt-1 w-full rounded-md border bg-background px-2 py-1.5 text-sm" value={values[f.name] ?? ""} onChange={(e) => setValues({ ...values, [f.name]: e.target.value })}>
+                <option value="" disabled>Choose…</option>
+                {f.enum.map((o) => <option key={o}>{o}</option>)}
+              </select>
+            ) : (
+              <input autoFocus={i === 0} className="mt-1 w-full rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring/30"
+                value={values[f.name] ?? ""} onChange={(e) => setValues({ ...values, [f.name]: e.target.value })} />
+            )}
+          </label>
+        ))}
+      </div>
+      {!run.readOnly && <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">This tool can change things; it runs only when you press Run.</p>}
+      <div className="mt-2 flex gap-1.5">
+        <Button type="submit" size="sm" className="h-7" disabled={busy || !ready}>Run</Button>
+        <Button type="button" size="sm" variant="ghost" className="h-7" onClick={onCancel}>Cancel</Button>
+      </div>
+    </form>
   );
 }

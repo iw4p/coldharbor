@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Args, EngineEvent, Focus, Frame, Tile, TraceStep } from "@coldharbor/core";
+import type { Args, EngineEvent, Focus, Frame, InputField, Tile, TraceStep } from "@coldharbor/core";
 
 export type Message =
   | { id: string; role: "user"; text: string }
@@ -9,11 +9,12 @@ export type Message =
       id: string;
       role: "run";
       message: string;
-      status: "running" | "done" | "error" | "clarify" | "confirm" | "cancelled" | "said";
+      status: "running" | "done" | "error" | "clarify" | "confirm" | "needs-input" | "cancelled" | "said";
       steps: TraceStep[];
       text?: string;
       clarify?: { question: string; options: { toolId: string; label: string; p: number }[] };
       confirm?: { toolId: string; title: string; args: Args; readOnly: boolean };
+      needsInput?: { toolId: string; title: string; args: Args; fields: InputField[]; readOnly: boolean };
       tileId?: string;
     };
 
@@ -83,11 +84,18 @@ export function useColdHarbor() {
     const focusTile = tiles.find((t) => t.id === focusId);
     const focus: Focus | undefined = focusTile && { tileId: focusTile.id, toolId: focusTile.toolId, args: focusTile.args, widget: focusTile.widget, frames: focusTile.frames };
     const runId = replyTo ?? uid();
-    if (replyTo) updateRun(runId, () => ({ status: "running", clarify: undefined, confirm: undefined }));
-    else setMessages((ms) => [...ms, { id: uid(), role: "user", text: message }, { id: runId, role: "run", message, status: "running", steps: [] }]);
+    if (replyTo) {
+      updateRun(runId, () => ({ status: "running", clarify: undefined, confirm: undefined, needsInput: undefined }));
+    } else {
+      setMessages((ms) => [...ms, { id: uid(), role: "user", text: message }, { id: runId, role: "run", message, status: "running", steps: [] }]);
+    }
+    // What the conversation already established (owner, repo, city…): newest tiles win, the focused tile wins most.
+    const known: Args = {};
+    for (const t of [...tiles].reverse()) Object.assign(known, t.args);
+    if (focusTile) Object.assign(known, focusTile.args);
     setBusy(true);
     try {
-      const res = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message, focus, forceTool, confirmed }) });
+      const res = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message, focus, forceTool, confirmed, known }) });
       const reader = res.body!.getReader();
       const dec = new TextDecoder();
       let buf = "";
@@ -112,6 +120,7 @@ export function useColdHarbor() {
       else if (e.type === "error") updateRun(runId, () => ({ status: "error", text: e.message }));
       else if (e.type === "clarify") updateRun(runId, () => ({ status: "clarify", clarify: { question: e.question, options: e.options } }));
       else if (e.type === "confirm") updateRun(runId, () => ({ status: "confirm", confirm: { toolId: e.toolId, title: e.title, args: e.args, readOnly: e.readOnly } }));
+      else if (e.type === "needs-input") updateRun(runId, () => ({ status: "needs-input", needsInput: { toolId: e.toolId, title: e.title, args: e.args, fields: e.fields, readOnly: e.readOnly } }));
       else if (e.type === "tile") {
         const tile = { ...e.tile, createdAt: Date.now() };
         setTiles((ts) => (e.replaces && ts.some((t) => t.id === e.replaces) ? ts.map((t) => (t.id === e.replaces ? tile : t)) : [tile, ...ts]));

@@ -1,6 +1,6 @@
 "use client";
 
-import { fieldsOf, labelField, type Frame } from "@coldharbor/core";
+import { labelField, measures, type Frame } from "@coldharbor/core";
 import { motion } from "motion/react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "cn";
@@ -11,7 +11,7 @@ import { fmtNumber } from "../format.ts";
  * or, for a single row, one card per number.
  */
 export default function StatView({ frame }: { frame: Frame }) {
-  const nums = fieldsOf(frame, "number");
+  const nums = measures(frame);
   const pctField = nums.find((f) => f.unit === "%");
   const main = nums.filter((f) => f !== pctField);
   const label = labelField(frame);
