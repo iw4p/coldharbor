@@ -30,6 +30,8 @@ export interface ToolDef<S extends ZodRawShape> {
   description: string;
   input: S;
   run: (args: z.infer<z.ZodObject<S>>) => Promise<Frame | Frame[]>;
+  /** Sources fetch data, so tools are marked read-only (they run without asking). Set false for tools that change things. */
+  readOnly?: boolean;
 }
 
 export interface SourceDef {
@@ -46,7 +48,10 @@ export function defineSource(def: SourceDef) {
   for (const [name, t] of Object.entries(def.tools)) {
     server.registerTool(
       name,
-      { title: t.title, description: t.description, inputSchema: t.input, outputSchema: { frames: z.array(z.any()) } },
+      {
+        title: t.title, description: t.description, inputSchema: t.input, outputSchema: { frames: z.array(z.any()) },
+        annotations: { title: t.title, readOnlyHint: t.readOnly ?? true, openWorldHint: true },
+      },
       async (args: Record<string, unknown>) => {
         try {
           const frames = ([] as Frame[]).concat(await t.run(args));

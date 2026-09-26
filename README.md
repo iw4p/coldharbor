@@ -2,6 +2,8 @@
 
 **Connect any MCP server. Ask in plain words. Watch live widgets appear.**
 
+![ColdHarbor: five tiles from four MCP servers (GitHub pull requests, a README, stock charts, a weather map), made from plain questions in the chat on the left](docs/screenshots/canvas.png)
+
 ColdHarbor is a chat-driven dashboard. You plug in data sources (any [MCP](https://modelcontextprotocol.io) server), and when you ask
 "weather in Berlin this week" or "compare Apple with Nvidia", it picks the right tool, fills in the arguments, fetches the
 data and draws it with the right widget. Follow up with "as a table", "on a map" or "what about Tehran?" and the canvas updates.
@@ -246,7 +248,10 @@ routing time and a full conversation, message by message.
    tool's arguments from its JSON Schema, keeping the previous ones for follow-ups, and the MCP tool is called.
 3. **Draw**: a widget you asked for, else the same view as before, else the best fit for the frames.
 
-Every step is streamed to the UI and kept on the tile ("Why this?").
+Every step is streamed to the UI and kept on the tile ("Why this?"). Here "show it as a table" was recognised as a
+view change, so no LLM call and no new data were needed:
+
+![The "Why this?" panel on a tile: Kev's scores, "only a view change, so no LLM call and no new data", and the exact tool call](docs/screenshots/why.png)
 
 ## License
 
