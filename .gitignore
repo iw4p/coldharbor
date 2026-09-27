@@ -1,7 +1,8 @@
 node_modules
 .next
+.coldharbor
+next-env.d.ts
 *.tsbuildinfo
 .DS_Store
-.env*.local
-.env
+.env*
 examples/shop/shop.db

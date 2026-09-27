@@ -11,19 +11,19 @@
     "weather": {
       "command": "node",
       "args": [
-        "sources/weather/src/index.ts"
+        "sources/weather.ts"
       ]
     },
     "markets": {
       "command": "node",
       "args": [
-        "sources/markets/src/index.ts"
+        "sources/markets.ts"
       ]
     },
     "news": {
       "command": "node",
       "args": [
-        "sources/news/src/index.ts"
+        "sources/news.ts"
       ]
     },
     "github": {
