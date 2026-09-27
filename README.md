@@ -4,7 +4,17 @@
 
 ![ColdHarbor: five tiles from four MCP servers (GitHub pull requests, a README, stock charts, a weather map), made from plain questions in the chat on the left](docs/screenshots/canvas.png)
 
-ColdHarbor is a chat-driven dashboard. You plug in data sources (any [MCP](https://modelcontextprotocol.io) server), and when you ask
+ColdHarbor is a proof of two ideas:
+
+1. **A small "System One" classifier makes a better harness than a bigger model.** A 0.8B model makes the fast,
+   frequent choices (which server, which tool, which view, is this a follow-up?). A small local LLM only fills in
+   arguments or steps in when the classifier is unsure. With 31 tools across 4 MCP servers: right tool 25/42 → 40/42,
+   ~30 s → 4.4 s per message ([results](#adding-a-big-real-world-mcp-server-with-zero-code-changes)).
+2. **Answers should be interfaces, not paragraphs.** The UI is inferred from the shape of whatever data an MCP server
+   returns (charts, maps, tables, cards), with no per-server code. Follow-ups like "as a table" re-render without
+   calling the LLM.
+
+In practice it's a chat-driven dashboard. You plug in data sources (any [MCP](https://modelcontextprotocol.io) server), and when you ask
 "weather in Berlin this week" or "compare Apple with Nvidia", it picks the right tool, fills in the arguments, fetches the
 data and draws it with the right widget. Follow up with "as a table", "on a map" or "what about Tehran?" and the canvas updates.
 
