@@ -2,7 +2,7 @@ import type { LLM, RouteDecision, Router, ToolInfo, WidgetSpec } from "./types.t
 
 const SUBJECT = "Does the message name a specific place, company, coin, currency, topic, person or time period?";
 const FOLLOW_UP = "Does the message ask to change or adjust the previous result, for example a different time range, place or item?";
-const ABOUT_ME = "Does the message ask about the user's own account or things, using words like my, mine or me?";
+const ABOUT_ME = "Does the message ask about the user's own account or things, using words like I, me, my or mine?";
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
 /** The first sentence: tool descriptions often go on for paragraphs, and every token costs time. */
@@ -122,7 +122,7 @@ export function hybridRouter(kev: Router, llm: Router, opts = { toolThreshold: 0
       if (!candidates.length && top) candidates = tools.filter((t) => t.server === top);
       if (!candidates.length) candidates = tools;
       const l = await llm.route(message, candidates, widgets, context);
-      return { ...l, widgets: k.widgets, newSubject: k.newSubject, followUp: k.followUp, aboutMe: k.aboutMe, servers: k.servers, by: `Kev → ${l.by} (${candidates.length} tools)`, ms: k.ms + l.ms };
+      return { ...l, widgets: k.widgets, newSubject: k.newSubject, followUp: k.followUp, aboutMe: k.aboutMe, servers: k.servers, shortlist: k.shortlist, by: `Kev → ${l.by} (${candidates.length} tools)`, ms: k.ms + l.ms };
     },
   };
 }
@@ -137,6 +137,9 @@ export function llmRouter(llm: LLM): Router {
         `You route a user's message to one data tool and optionally a display widget. Reply with JSON only:\n` +
           `{"tool": "<tool id or null>", "confidence": 0-1, "widget": "<widget id the user explicitly asked for, or null>", "new_subject": true|false, "adjusts_previous": true|false, "about_me": true|false}\n` +
           `Tools:\n${tools.map((t) => `- ${t.id}: ${t.title}. ${t.description}`).join("\n")}\n` +
+          // MCP servers can give instructions on choosing between their tools; pass them on.
+          [...new Map(tools.filter((t) => t.serverInfo).map((t) => [t.server, t.serverInfo!])).entries()]
+            .map(([s, info]) => `Guidance from the ${s} server: ${info.replace(/\s+/g, " ").slice(0, 700)}\n`).join("") +
           `Widgets:\n${widgets.map((w) => `- ${w.id}: ${w.name}`).join("\n")}\n` +
           `new_subject is true when the message names a place, company, coin, currency, topic, person or time period. ` +
           `adjusts_previous is true when the message changes a previous result, like "and for the last 5 days?". ` +

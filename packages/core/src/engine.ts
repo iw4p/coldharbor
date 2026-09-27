@@ -96,14 +96,15 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
     };
     return;
   }
-  const tool = tools.find((t) => t.id === toolId);
-  if (!tool) {
+  const found = tools.find((t) => t.id === toolId);
+  if (!found) {
     yield { type: "error", message: `Unknown tool ${toolId}` };
     return;
   }
+  let tool: ToolInfo = found;
 
   // 2 · Data: reuse, or fill arguments and call the tool
-  const same = focus?.toolId === toolId;
+  let same = focus?.toolId === toolId;
   let args: Args;
   let frames: Frame[];
   let reused = false;
@@ -112,7 +113,7 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
     reused = true;
     yield step("engine", "only a view change, so no LLM call and no new data");
   } else {
-    // "my …": ask the server who the user is (once per server), so the LLM can fill in their username.
+    // "my …", "do I …": ask the server who the user is (once per server), so the LLM can fill in their username.
     let me: Record<string, Value> | undefined;
     const idTool = (r.aboutMe ?? 0) >= 0.5 && !isIdentityTool(tool) ? tools.find((t) => t.server === tool.server && t.autoRun && isIdentityTool(t)) : undefined;
     if (idTool) {
@@ -121,23 +122,51 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
       identities.set(tool.server, me);
       yield step(tool.server, `${idTool.name} → you are ${Object.values(me)[0] ?? "?"}`, Date.now() - t0);
     }
-    const t0 = Date.now();
-    const known = relevant(input.known, tool);
-    args = await fillArgs(deps.llm, tool, message, same ? focus!.args : undefined, known, me);
-    // Values nobody gave: small LLMs fill "owner" with a famous repo rather than leave it empty.
-    const invented = await ungrounded(deps.router, tool, args, message, [known, me, same ? focus!.args : undefined]);
-    if (invented.length) {
-      for (const k of invented) delete args[k];
-      yield step("engine", `dropped ${invented.map((k) => k).join(", ")}: not in your message or the conversation`);
+
+    /** Fill a tool's arguments from the message, the conversation and the user's identity; report what's still missing. */
+    const prepare = async (t: ToolInfo) => {
+      const sameTool = focus?.toolId === t.id;
+      const known = relevant(input.known, t);
+      const a = await fillArgs(deps.llm, t, message, sameTool ? focus!.args : undefined, known, me);
+      // Values nobody gave: small LLMs fill "owner" with a famous repo rather than leave it empty.
+      const invented = await ungrounded(deps.router, t, a, message, [known, me, sameTool ? focus!.args : undefined]);
+      for (const k of invented) delete a[k];
+      // Required values the LLM left out but the conversation already has ("and the issues?" after naming a repo).
+      for (const k of t.inputSchema.required ?? []) if ((a[k] == null || a[k] === "") && known[k] != null) a[k] = known[k];
+      return { args: a, invented, missing: missingArgs(t, a) };
+    };
+
+    let t0 = Date.now();
+    let prep = await prepare(tool);
+    if (prep.invented.length) yield step("engine", `dropped ${prep.invented.join(", ")}: not in your message or the conversation`);
+    yield step(deps.llm.name, JSON.stringify(prep.args), Date.now() - t0);
+
+    // The chosen tool needs something nobody said. Before asking, try the next likely tools on the same server:
+    // "do I have open PRs?" can't name a repo for a per-repo list, but a search tool only needs a query.
+    if (prep.missing.length && !forceTool) {
+      // Kev's shortlist, tools that need fewer things first (a search needs a query; a per-item read needs ids).
+      const need = (x: ToolInfo) => x.inputSchema.required?.length ?? 0;
+      const alternatives = (r.shortlist ?? r.tools.map((x) => x.id))
+        .map((id) => tools.find((x) => x.id === id))
+        .filter((x): x is ToolInfo => !!x && x.id !== tool.id && x.server === tool.server && !isIdentityTool(x))
+        .slice(0, 5)
+        .sort((a, b) => need(a) - need(b))
+        .slice(0, 3);
+      for (const alt of alternatives) {
+        t0 = Date.now();
+        const p = await prepare(alt);
+        if (p.missing.length) continue;
+        yield step("engine", `${tool.name} needs ${prep.missing.map((f) => f.name).join(", ")}; ${alt.name} doesn't, so using it`);
+        yield step(deps.llm.name, JSON.stringify(p.args), Date.now() - t0);
+        [tool, toolId, prep, same] = [alt, alt.id, p, focus?.toolId === alt.id];
+        break;
+      }
     }
-    // Required values the LLM left out but the conversation already has ("and the issues?" after naming a repo).
-    for (const k of tool.inputSchema.required ?? []) if ((args[k] == null || args[k] === "") && known[k] != null) args[k] = known[k];
-    yield step(deps.llm.name, JSON.stringify(args), Date.now() - t0);
+    args = prep.args;
     // Required arguments nobody gave: ask, don't guess.
-    const missing = missingArgs(tool, args);
-    if (missing.length) {
-      yield step("engine", `${tool.name} needs ${missing.map((f) => f.name).join(", ")}, so asking`);
-      yield { type: "needs-input", toolId, title: tool.title, args, fields: missing, readOnly: tool.readOnly };
+    if (prep.missing.length) {
+      yield step("engine", `${tool.name} needs ${prep.missing.map((f) => f.name).join(", ")}, so asking`);
+      yield { type: "needs-input", toolId, title: tool.title, args, fields: prep.missing, readOnly: tool.readOnly };
       return;
     }
     if (!tool.autoRun && !(same && sameArgs(args, focus!.args))) {
@@ -262,7 +291,11 @@ async function ungrounded(router: Router, tool: ToolInfo, args: Args, message: s
   const words = (v: string) => v.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3);
   const suspects = Object.entries(args).filter(([k, v]) => {
     const p = (props[k] ?? {}) as { enum?: unknown[]; default?: unknown };
-    if (typeof v !== "string" || !v || p.enum?.includes(v) || p.default === v) return false;
+    if (v == null || v === "" || p.enum?.includes(v) || p.default === v) return false;
+    // Required numbers are ids (an issue number): invented ones look just as plausible as real ones.
+    // Optional numbers are usually conversions ("last 3 months" → days: 90) and are left alone.
+    if (typeof v === "number") return !!tool.inputSchema.required?.includes(k) && !new RegExp(`(^|\\D)${v}(\\D|$)`).test(seen);
+    if (typeof v !== "string") return false;
     const ws = words(v);
     return ws.length > 0 && !ws.some((w) => seen.includes(w));
   }).map(([k]) => k);
