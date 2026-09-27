@@ -47,6 +47,8 @@ function typeOf(key: string, values: Value[]): FieldType {
   if (vs.every((v) => typeof v === "number")) return LAT.test(leaf(key)) ? "lat" : LON.test(leaf(key)) ? "lon" : "number";
   const ss = vs.map(String);
   if (ss.every((s) => ISO_DATE.test(s))) return "time";
+  // Other date formats JavaScript can read, as long as they carry a year and a time or a date separator.
+  if (ss.every((s) => /\b(19|20)\d{2}\b/.test(s) && /[:\-/]/.test(s) && !Number.isNaN(Date.parse(s)) && !/^https?:/.test(s))) return "time";
   if (ss.every((s) => /^https?:\/\/\S+$/.test(s))) return "url";
   const avg = ss.reduce((n, s) => n + s.length, 0) / ss.length;
   if (avg > 160 || ss.filter((s) => s.includes("\n")).length > ss.length * 0.3) return "text";
@@ -91,7 +93,9 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
   const byLeaf = (names: string[], ok: (f: Field) => boolean) =>
     fields.filter((f) => names.includes(leaf(f.name)) && ok(f))
       .sort((a, b) => depth(a) - depth(b) || names.indexOf(leaf(a.name)) - names.indexOf(leaf(b.name)))[0];
-  let label = byLeaf(LABEL_KEYS.filter((k) => k !== "email"), (f) => f.type === "string" || f.type === "text") ?? fields.find((f) => f.type === "string");
+  // Fallback title: the first text field whose values look like names, not flags ("yes", "false").
+  const flagLike = (f: Field) => flat.every((r) => r[f.name] == null || /^(yes|no|true|false)$/i.test(String(r[f.name])));
+  let label = byLeaf(LABEL_KEYS.filter((k) => k !== "email"), (f) => f.type === "string" || f.type === "text") ?? fields.find((f) => f.type === "string" && !flagLike(f));
   const url = byLeaf(URL_KEYS, (f) => f.type === "url" && !isNoise(f.name, f.type, flat.map((r) => r[f.name] ?? null)))
     ?? fields.find((f) => f.type === "url" && !isNoise(f.name, f.type, flat.map((r) => r[f.name] ?? null)));
   const group = flat.length >= 2 ? byLeaf(GROUP_KEYS, (f) => {
@@ -107,6 +111,11 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
     fields.unshift(label);
   }
 
+  // Nothing names the rows? Then an id is the best name there is: keep it rather than drop it as noise.
+  if (!label) {
+    const id = fields.find((f) => (leaf(f.name) === "id" || leaf(f.name).endsWith("_id")) && f.type !== "url");
+    if (id) label = id;
+  }
   const keep = new Set([label?.name, url?.name, group?.name].filter(Boolean));
   fields = fields.filter((f) => {
     if (keep.has(f.name)) return true;
@@ -147,6 +156,89 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
   };
 }
 
+// ── Text that is really data ─────────────────────────────────────────────────────────────────
+// Many servers print instead of returning JSON. These are the common shapes, tried in order.
+
+/** Python-style literals ({'a': True, 'b': None}) → JSON. Walks the text so quotes inside strings survive. */
+function pythonToJson(src: string): string | undefined {
+  let out = "";
+  for (let i = 0; i < src.length; ) {
+    const c = src[i];
+    if (c === "'" || c === '"') {
+      let j = i + 1, str = "";
+      while (j < src.length && src[j] !== c) {
+        if (src[j] === "\\" && j + 1 < src.length) {
+          const n = src[j + 1];
+          str += n === "n" ? "\n" : n === "t" ? "\t" : n;
+          j += 2;
+        } else str += src[j++];
+      }
+      if (j >= src.length) return undefined;
+      out += JSON.stringify(str);
+      i = j + 1;
+    } else if (/[A-Za-z_]/.test(c)) {
+      const word = src.slice(i).match(/^[A-Za-z_]\w*/)![0];
+      out += word === "True" ? "true" : word === "False" ? "false" : word === "None" ? "null" : word;
+      i += word.length;
+    } else out += src[i++];
+  }
+  return out;
+}
+
+const SIZE = /^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB|TB|KiB|MiB|GiB|TiB)$/i;
+const UNITS: Record<string, number> = { b: 1, kb: 1e3, mb: 1e6, gb: 1e9, tb: 1e12, kib: 1024, mib: 1024 ** 2, gib: 1024 ** 3, tib: 1024 ** 4 };
+/** "13339" → 13339, "1.02 KB" → 1020, everything else unchanged. */
+function scalarOf(v: string): Value {
+  const t = v.trim();
+  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
+  if (/^(true|false)$/i.test(t)) return /^true$/i.test(t) ? "yes" : "no";
+  const m = t.match(SIZE);
+  if (m) return Math.round(Number(m[1]) * UNITS[m[2].toLowerCase()]);
+  return t;
+}
+
+/** Turns printed data into objects when it has a recognisable shape; otherwise returns the text. */
+export function parseText(text: string): unknown {
+  const t = text.trim().replace(/^```\w*\n([\s\S]*?)\n```$/, "$1").trim();
+  const tryParse = (s: string) => { try { return JSON.parse(s); } catch { const p = pythonToJson(s); if (p) try { return JSON.parse(p); } catch {} } };
+
+  // JSON (or Python literals), whole or embedded after a sentence ("Found 3 rows: [...]").
+  const whole = tryParse(t);
+  if (whole !== undefined && typeof whole === "object") return whole;
+  const start = t.search(/[[{]/), end = Math.max(t.lastIndexOf("]"), t.lastIndexOf("}"));
+  if (start >= 0 && end > start) {
+    const inner = tryParse(t.slice(start, end + 1));
+    if (inner && typeof inner === "object") return inner;
+  }
+
+  const lines = t.split("\n").map((l) => l.replace(/\s+$/, "")).filter(Boolean);
+  if (lines.length < 2) return text;
+  const most = (re: RegExp) => lines.filter((l) => re.test(l)).length >= Math.max(2, lines.length * 0.8);
+
+  // Markdown table.
+  if (most(/^\s*\|.*\|\s*$/)) {
+    const cells = (l: string) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+    const rows = lines.filter((l) => l.includes("|") && !/^\s*\|?\s*:?-{2,}/.test(l));
+    const head = cells(rows[0]);
+    return rows.slice(1).map((r) => Object.fromEntries(cells(r).map((c, i) => [head[i] || `col${i + 1}`, scalarOf(c)])));
+  }
+  // Tagged lines: "[DIR] apps", "[FILE] LICENSE    1.05 KB".
+  const TAG = /^\s*\[([^\]]{1,20})\]\s+(.+?)(?:\s{2,}(\S.*))?$/;
+  if (most(TAG)) {
+    return lines.map((l) => l.match(TAG)).filter(Boolean).map((m) => ({ type: m![1], name: m![2].trim(), ...(m![3] ? { size: scalarOf(m![3]) } : {}) }));
+  }
+  // "key: value" lines → one record.
+  const KV = /^\s*([\w][\w .\-/]{0,40}?)\s*[:=]\s+(.*)$/;
+  if (most(KV)) {
+    return Object.fromEntries(lines.map((l) => l.match(KV)).filter(Boolean).map((m) => [m![1].trim(), scalarOf(m![2])]));
+  }
+  // A plain list: short lines without sentences (paths, names, ids).
+  if (lines.length >= 3 && lines.every((l) => l.length <= 200) && lines.filter((l) => l.trim().split(/\s+/).length <= 3).length >= lines.length * 0.8) {
+    return lines.map((l) => ({ value: l.trim() }));
+  }
+  return text;
+}
+
 export function textFrame(text: string, title: string): Frame {
   return { title, fields: [{ name: "text", type: "text" }], rows: [{ text }], prefer: ["text"] };
 }
@@ -156,7 +248,15 @@ export function textFrame(text: string, title: string): Frame {
  * plus any lists nested inside a single record (an issue's comments, a PR's files).
  */
 export function inferFrames(data: unknown, title: string): Frame[] {
-  if (typeof data === "string") return [textFrame(data, title)];
+  if (typeof data === "string") {
+    const parsed = parseText(data);
+    return typeof parsed === "string" ? [textFrame(parsed, title)] : inferFrames(parsed, title);
+  }
+  // { content: "..." }: a wrapper around printed text.
+  if (isPlainObject(data)) {
+    const vals = Object.values(data);
+    if (vals.length === 1 && typeof vals[0] === "string") return inferFrames(vals[0], title);
+  }
   const found = findRecords(data);
   if (found && !(isPlainObject(data) && Object.keys(data).length > 4 && found.records.length < 2)) {
     return [recordsToFrame(found.records, title, found.total)];

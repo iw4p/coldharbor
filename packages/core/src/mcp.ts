@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { getDefaultEnvironment, StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { inferFrames, isFrame, textFrame, type Frame } from "./frame.ts";
+import { inferFrames, isFrame, type Frame } from "./frame.ts";
 import type { Args, ToolInfo, ToolRunner } from "./types.ts";
 
 /** Same shape as Claude Desktop / Cursor `mcpServers` entries, so configs can be copied across. */
@@ -49,14 +49,23 @@ export class McpHub implements ToolRunner {
       c = (async () => {
         const cfg = this.servers[name];
         const client = new Client({ name: "coldharbor", version: "0.1.0" });
-        const transport = "url" in cfg
-          ? new StreamableHTTPClientTransport(new URL(cfg.url), { requestInit: { headers: cfg.headers } })
+        const stdio = "url" in cfg ? undefined
           : new StdioClientTransport({ command: cfg.command, args: cfg.args, cwd: cfg.cwd ?? this.root, env: { ...getDefaultEnvironment(), ...cfg.env }, stderr: "pipe" });
+        const transport = stdio ?? new StreamableHTTPClientTransport(new URL((cfg as { url: string }).url), { requestInit: { headers: (cfg as { headers?: Record<string, string> }).headers } });
+        // Keep the last lines a server wrote to stderr: when it crashes, that's the explanation.
+        const log: string[] = [];
+        stdio?.stderr?.on("data", (b: Buffer) => { log.push(...b.toString().split("\n").filter(Boolean)); log.splice(0, Math.max(0, log.length - 20)); });
+        const why = () => log.filter((l) => /error|exception|not found|denied|refused|invalid|missing/i.test(l)).at(-1) ?? log.at(-1);
         transport.onclose = () => {
           this.clients.delete(name);
-          this.status.set(name, { name, state: "error", error: "disconnected", tools: [] });
+          this.status.set(name, { name, state: "error", error: why() ? `stopped: ${why()!.trim().slice(0, 240)}` : "disconnected", tools: [] });
         };
-        await client.connect(transport);
+        try {
+          await client.connect(transport);
+        } catch (e) {
+          const detail = why();
+          throw new Error(detail ? `${(e as Error).message} (${detail.trim().slice(0, 240)})` : (e as Error).message);
+        }
         return client;
       })();
       c.catch((e) => {
@@ -132,10 +141,6 @@ export class McpHub implements ToolRunner {
 export function toFrames(structured: unknown, text: string, title: string): Frame[] {
   const frames = (structured as { frames?: unknown[] } | undefined)?.frames;
   if (Array.isArray(frames) && frames.every(isFrame)) return frames as Frame[];
-  if (structured) return inferFrames(structured, title);
-  try {
-    return inferFrames(JSON.parse(text), title);
-  } catch {
-    return [textFrame(text, title)];
-  }
+  // Structured content first; otherwise the text, which inferFrames parses when it's really data.
+  return inferFrames(structured ?? text, title);
 }

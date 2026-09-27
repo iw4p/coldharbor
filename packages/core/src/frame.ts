@@ -51,4 +51,4 @@ export function isFrame(x: unknown): x is Frame {
   return !!f && typeof f.title === "string" && Array.isArray(f.fields) && Array.isArray(f.rows);
 }
 
-export { inferFrames, textFrame } from "./infer.ts";
+export { inferFrames, parseText, textFrame } from "./infer.ts";

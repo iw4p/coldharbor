@@ -61,7 +61,7 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
     const tool = tools.find((t) => t.id === input.confirmed!.toolId);
     if (!tool) return void (yield { type: "error", message: `Unknown tool ${input.confirmed.toolId}` });
     const t0 = Date.now();
-    const frames = titled(await deps.tools.call(tool.id, input.confirmed.args), tool, input.confirmed.args);
+    const frames = titled(await deps.tools.call(tool.id, input.confirmed.args), tool, input.confirmed.args, message);
     yield step(tool.server, `${tool.name} (approved) → ${frames.length} frame${frames.length === 1 ? "" : "s"}`, Date.now() - t0);
     const fits = rankWidgets(deps.widgets, frames);
     yield { type: "tile", tile: { id: crypto.randomUUID(), toolId: tool.id, args: input.confirmed.args, frames, widget: fits[0]?.id ?? "text", title: frames[0]?.title ?? tool.title, createdAt: Date.now(), trace } };
@@ -123,11 +123,16 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
       yield step(tool.server, `${idTool.name} → you are ${Object.values(me)[0] ?? "?"}`, Date.now() - t0);
     }
 
+    // What this server contains, learned once from its own list/describe tools.
+    const d0 = Date.now();
+    const contents = await discover(deps.tools, tools, tool.server);
+    if (contents && Date.now() - d0 > 50) yield step(tool.server, `learned what it contains: ${contents.split("\n").map((l) => l.split(":")[0]).join(", ")}`, Date.now() - d0);
+
     /** Fill a tool's arguments from the message, the conversation and the user's identity; report what's still missing. */
     const prepare = async (t: ToolInfo) => {
       const sameTool = focus?.toolId === t.id;
       const known = relevant(input.known, t);
-      const a = await fillArgs(deps.llm, t, message, sameTool ? focus!.args : undefined, known, me);
+      const a = await fillArgs(deps.llm, t, message, sameTool ? focus!.args : undefined, known, me, contents);
       // Values nobody gave: small LLMs fill "owner" with a famous repo rather than leave it empty.
       const invented = await ungrounded(deps.router, t, a, message, [known, me, sameTool ? focus!.args : undefined]);
       for (const k of invented) delete a[k];
@@ -180,7 +185,7 @@ export async function* ask(input: AskInput, deps: EngineDeps): AsyncGenerator<En
       yield step("engine", "nothing new to fetch, reusing the data");
     } else {
       const t1 = Date.now();
-      frames = titled(await deps.tools.call(toolId, args), tool, args);
+      frames = titled(await deps.tools.call(toolId, args), tool, args, message);
       yield step(tool.server, `${tool.name} → ${frames.length} frame${frames.length === 1 ? "" : "s"}, ${frames.reduce((n, f) => n + f.rows.length, 0)} rows`, Date.now() - t1);
     }
   }
@@ -236,18 +241,65 @@ export function frameFor(widget: WidgetSpec, frames: Frame[]): Frame | undefined
 
 /** "List commits · iw4p / coldharbor": the tool's name plus the arguments that say what it's about. */
 const NOISE_ARG = /page|limit|sort|order|direction|fields|method|format|cursor|after|before|since|until|detail|minimal|sha|ref/i;
-function niceTitle(tool: ToolInfo, args: Args) {
+function niceTitle(tool: ToolInfo, args: Args, message?: string) {
   const about = Object.entries(args)
     .filter(([k, v]) => typeof v === "string" && v && v.length <= 40 && !NOISE_ARG.test(k))
     .map(([, v]) => v as string);
   const name = tool.title.charAt(0).toUpperCase() + tool.title.slice(1);
-  return about.length ? `${name} · ${about.join(" / ")}` : name;
+  if (about.length) return `${name} · ${about.join(" / ")}`;
+  // Generic tools ("Read query") say nothing about the result; the user's own question does.
+  const q = message?.trim().replace(/[?.!]+$/, "");
+  return q && q.length <= 60 ? q.charAt(0).toUpperCase() + q.slice(1) : name;
 }
 
 /** Frames that only got the tool's id as a title (inferred from plain JSON) get a readable one. */
-function titled(frames: Frame[], tool: ToolInfo, args: Args): Frame[] {
-  const nice = niceTitle(tool, args);
+function titled(frames: Frame[], tool: ToolInfo, args: Args, message?: string): Frame[] {
+  const nice = niceTitle(tool, args, message);
   return frames.map((f) => (f.title === tool.name || f.title.startsWith(`${tool.name} · `) ? { ...f, title: f.title.replace(tool.name, nice) } : f));
+}
+
+/**
+ * Discovery: what a server contains (its tables and their columns, the folders it can see…), learned once
+ * by calling its own read-only "list/describe" tools, so the LLM writes queries against things that exist.
+ *
+ *   step 1  read-only tools with no required arguments named like list_tables / list_schemas /
+ *           list_allowed_directories / get_schema, or described as listing tables, schemas or structure
+ *   step 2  for each name they return (up to 8), a read-only "describe_*" tool with one required argument
+ */
+const discoveries = new Map<string, Promise<string>>();
+const LISTS = /^(list|show|get)[_-]?(tables|schemas?|collections|databases|datasets|allowed[_-]?directories|indexes|metrics|entities|models|views|buckets|projects)$/i;
+const DESCRIBES = /^(describe|show[_-]?columns|get[_-]?(table[_-]?)?schema|table[_-]?info|get[_-]?columns)/i;
+
+function discover(runner: ToolRunner, tools: ToolInfo[], server: string): Promise<string> {
+  let d = discoveries.get(server);
+  if (!d) {
+    d = (async () => {
+      const mine = tools.filter((t) => t.server === server && t.readOnly);
+      const lists = mine.filter((t) => !t.inputSchema.required?.length && (LISTS.test(t.name) || /\b(list|lists) (all )?(tables|schemas|collections|allowed directories)\b/i.test(t.description))).slice(0, 2);
+      const describe = mine.find((t) => t.inputSchema.required?.length === 1 && DESCRIBES.test(t.name));
+      const parts: string[] = [];
+      for (const l of lists) {
+        const [f] = await runner.call(l.id, {}).catch(() => []);
+        if (!f) continue;
+        const col = (f.labelField && f.fields.find((x) => x.name === f.labelField)) || f.fields.find((x) => x.type === "string");
+        const names = col ? f.rows.map((r) => String(r[col.name] ?? "")).filter(Boolean).slice(0, 20) : [];
+        if (!names.length) continue;
+        if (describe) {
+          const arg = describe.inputSchema.required![0];
+          const described = await Promise.all(names.slice(0, 8).map(async (n) => {
+            const [g] = await runner.call(describe.id, { [arg]: n }).catch(() => []);
+            // A describe tool usually returns one row per column; name the columns.
+            const c = g && ((g.labelField && g.fields.find((x) => x.name === g.labelField)) || g.fields.find((x) => x.type === "string"));
+            return c ? `${n}(${g!.rows.map((r) => r[c.name]).filter(Boolean).join(", ")})` : n;
+          }));
+          parts.push(`${l.title}: ${described.join("; ")}`);
+        } else parts.push(`${l.title}: ${names.join(", ")}`);
+      }
+      return parts.join("\n").slice(0, 2500);
+    })().catch(() => "");
+    discoveries.set(server, d);
+  }
+  return d;
 }
 
 /** Answers from each server's "who am I" tool, for the life of the process. */
@@ -322,7 +374,7 @@ function missingArgs(tool: ToolInfo, args: Args): InputField[] {
     });
 }
 
-async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Args, known?: Args, me?: Record<string, Value>): Promise<Args> {
+async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Args, known?: Args, me?: Record<string, Value>, contents?: string): Promise<Args> {
   const props = tool.inputSchema.properties ?? {};
   if (!Object.keys(props).length) return {};
   const system =
@@ -335,7 +387,9 @@ async function fillArgs(llm: LLM, tool: ToolInfo, message: string, previous?: Ar
     `Previous arguments: ${previous ? JSON.stringify(previous) : "none"}`,
     known && Object.keys(known).length ? `Values used earlier in this conversation (use them when the message refers to the same thing or doesn't say): ${JSON.stringify(known)}` : "",
     me ? `The user is ${JSON.stringify(me)}. "my", "mine" and "me" refer to this user.` : "",
+    contents ? `What this source contains (use only these names):\n${contents}` : "",
     `If a required value is unknown, leave it out rather than inventing one.`,
+    `If you write a query, return readable columns (names, titles) alongside any ids.`,
     `Message: ${message}`,
   ].filter(Boolean).join("\n");
   const out = (await llm.json(system, user)) as Args;
