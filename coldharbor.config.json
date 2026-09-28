@@ -36,16 +36,6 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     },
-    "shop": {
-      "command": "uvx",
-      "args": [
-        "--with",
-        "mcp<2",
-        "mcp-server-sqlite",
-        "--db-path",
-        "examples/shop/shop.db"
-      ]
-    },
     "files": {
       "command": "npx",
       "args": [
