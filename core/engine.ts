@@ -2,7 +2,7 @@
  * One message in, a stream of events out:  route → fill → gate → fetch → draw.
  * Every stage is skipped when it isn't needed, and every decision is reported as a step.
  */
-import { rankWidgets, type Frame, type WidgetSpec } from "./frame.ts";
+import { measures, rankWidgets, type Frame, type Value, type WidgetSpec } from "./frame.ts";
 import { fill, type Filled } from "./fill.ts";
 import { contents, identity, isIdentityTool } from "./hints.ts";
 import { route, THRESHOLDS as T, type Route } from "./route.ts";
@@ -50,7 +50,7 @@ export async function* ask({ message, focus, known, tool: picked }: AskInput, de
   const context = focus && `the user is looking at "${focus.frames[0]?.title ?? focus.toolId}" from ${focus.toolId} ${JSON.stringify(focus.args)}`;
   const r = await route(message, tools, deps.widgets, deps.s1, deps.second, context);
   const [asked, askedP] = top(r.widgets), best = r.tools[0], sure = (best?.p ?? 0) >= T.tool;
-  yield step(r.by, `tool ${r.tools.slice(0, 3).map((t) => `${t.id} ${pct(t.p)}`).join(" · ")}` +
+  yield step(r.by, (r.tools.length ? `tool ${r.tools.slice(0, 3).map((t) => `${t.id} ${pct(t.p)}`).join(" · ")}` : "no tool") +
     (askedP >= 0.5 ? ` · asked for ${asked} ${pct(askedP)}` : "") + ` · new subject ${pct(r.subject)} · follow-up ${pct(r.followUp)}`, r.ms);
 
   // No tool, no view request, nothing new named and not adjusting the last result: nothing to do.
@@ -75,7 +75,8 @@ export async function* ask({ message, focus, known, tool: picked }: AskInput, de
   // 2 · Fill: hints about the server, then the arguments
   const me = r.aboutMe >= 0.5 ? yield* identity(deps.tools, tools, tool, step) : undefined;
   const has = yield* contents(deps.tools, tools, tool.server, step);
-  const fillFor = (t: ToolInfo) => fill(t, { message, previous: focus?.toolId === t.id ? focus.args : undefined, known, me, contents: has }, deps.llm, deps.s1);
+  const fillFor = (t: ToolInfo, rejected?: string) =>
+    fill(t, { message, previous: focus?.toolId === t.id ? focus.args : undefined, known, me, contents: has, rejected }, deps.llm, deps.s1);
   const report = (f: Filled) => [
     ...(f.dropped.length ? [step("engine", `dropped ${f.dropped.join(", ")}: not in your message or the conversation`)] : []),
     step(deps.llm.name, JSON.stringify(f.args), f.ms),
@@ -110,9 +111,21 @@ export async function* ask({ message, focus, known, tool: picked }: AskInput, de
     return yield { type: "confirm", call, title: tool.title, readOnly: tool.readOnly };
   }
 
-  // 4 · Fetch, unless the same call is already on screen.
+  // 4 · Fetch, unless the same call is already on screen. Arguments the server rejects get one fix from the LLM,
+  // for tools that run on their own only: a call the user approved is never changed.
   if (again) yield step("engine", "nothing new to fetch, reusing the data");
-  const frames = again ? focus!.frames : yield* load(s, deps.tools, tool, call, message);
+  let frames: Frame[];
+  try {
+    frames = again ? focus!.frames : yield* load(s, deps.tools, tool, call, message);
+  } catch (e) {
+    const rejected = (e as Error).message;
+    if (!tool.autoRun || !/invalid (arguments|input|params)/i.test(rejected)) throw e;
+    yield step("engine", `${tool.name} rejected the arguments, so ${deps.llm.name} fixes them`);
+    f = await fillFor(tool, `${JSON.stringify(f.args)}: ${rejected.slice(0, 400)}`);
+    yield* report(f);
+    call.args = f.args;
+    frames = yield* load(s, deps.tools, tool, call, message);
+  }
   yield* draw(s, deps.widgets, call, frames, { r, previous: focus, replace: again ? focus : undefined });
 }
 
@@ -128,7 +141,13 @@ export async function* run(call: Call, deps: Deps, message: string, tile?: Tile)
 
 async function* load({ step }: Stepper, runner: ToolRunner, tool: ToolInfo, call: Call, message: string) {
   const t0 = Date.now();
-  const frames = titled(await runner.call(call.toolId, call.args), tool, call.args, message);
+  // "compare bitcoin and ethereum" on a tool that takes one coin: a list where the schema wants one value means one call each.
+  const props = tool.inputSchema.properties ?? {};
+  const lists = Object.entries(call.args).filter(([k, v]) => Array.isArray(v) && v.length > 1 && props[k]?.type && props[k].type !== "array") as [string, unknown[]][];
+  const n = Math.min(5, ...lists.map(([, v]) => v.length));
+  const each = lists.length ? Array.from({ length: n }, (_, i) => ({ ...call.args, ...Object.fromEntries(lists.map(([k, v]) => [k, v[i]])) })) : [call.args];
+  const results = await Promise.all(each.map((args) => runner.call(call.toolId, args)));
+  const frames = titled(lists.length ? merge(results, lists[0][1].slice(0, n).map(String)) : results[0], tool, call.args, message);
   yield step(tool.server, `${tool.name} → ${frames.length} frame${frames.length === 1 ? "" : "s"}, ${frames.reduce((n, f) => n + f.rows.length, 0)} rows`, Date.now() - t0);
   return frames;
 }
@@ -148,12 +167,31 @@ async function* draw({ step, trace }: Stepper, widgets: WidgetSpec[], call: Call
   yield { type: "tile", tile, replaces: replace?.id };
 }
 
+/** One result per compared value, drawn together: series on a shared time axis side by side, anything else as rows named by value. */
+function merge(results: Frame[][], names: string[]): Frame[] {
+  const firsts = results.map((fs) => fs[0]), time = (f: Frame) => f.fields.find((x) => x.type === "time")?.name;
+  if (!firsts.every((f) => f && time(f) && measures(f).length))
+    return [{ ...firsts[0], fields: [{ name: "item", type: "string" }, ...firsts[0].fields], rows: firsts.flatMap((f, i) => f.rows.map((r) => ({ item: names[i], ...r }))), labelField: "item" }];
+  const rows = new Map<Value, Record<string, Value>>();
+  firsts.forEach((f, i) => {
+    const t = time(f)!, m = measures(f)[0].name;
+    for (const r of f.rows) rows.set(r[t], { ...(rows.get(r[t]) ?? { time: r[t] }), [names[i]]: r[m] });
+  });
+  return [{
+    title: firsts[0].title,
+    fields: [{ name: "time", type: "time" }, ...names.map((name, i) => ({ name, type: "number" as const, unit: measures(firsts[i])[0].unit }))],
+    rows: [...rows.values()].sort((a, b) => String(a.time).localeCompare(String(b.time))),
+    prefer: ["line", "table"],
+  }];
+}
+
 /** "List commits · iw4p / coldharbor": the tool's name plus the arguments that say what it's about. */
 const NOISE_ARG = /page|limit|sort|order|direction|fields|method|format|cursor|after|before|since|until|detail|minimal|sha|ref/i;
 
-/** Frames that only got the tool's name as a title (inferred from plain JSON) get a readable one. */
+/** Frames that only got the tool's name as a title (inferred from plain JSON) get a readable one: the arguments the user named. */
 function titled(frames: Frame[], tool: ToolInfo, args: Args, message: string): Frame[] {
-  const about = Object.entries(args).filter(([k, v]) => typeof v === "string" && v && v.length <= 40 && !NOISE_ARG.test(k)).map(([, v]) => v);
+  const said = (v: string) => v.toLowerCase().split(/[^a-z0-9]+/).some((w) => w.length >= 3 && message.toLowerCase().includes(w));
+  const about = Object.entries(args).filter(([k, v]) => typeof v === "string" && v.length <= 40 && !NOISE_ARG.test(k) && said(v)).map(([, v]) => v);
   const name = tool.title.charAt(0).toUpperCase() + tool.title.slice(1);
   // Generic tools ("Read query") say nothing about the result; the user's own question does.
   const q = message.trim().replace(/[?.!]+$/, "");

@@ -88,15 +88,16 @@ async function* edits(i: Intent, s: State, d: Deps): AsyncGenerator<Edit> {
 /** Everything connected: MCP servers and their tools, widgets, and whether System One and the LLM are up. */
 export async function catalog(widgets: WidgetSpec[]) {
   const s = state(), d = deps(widgets), { config: { router, llm }, path } = loadConfig();
-  const up = (url: string) => fetch(url, { signal: AbortSignal.timeout(1500) }).then((r) => r.ok, () => false);
+  const up = (url: string, key?: string) =>
+    fetch(url, { signal: AbortSignal.timeout(1500), headers: key ? { authorization: `Bearer ${key}` } : {} }).then((r) => r.ok, () => false);
   const tools = await s.hub.list();
   return {
     configPath: path,
     servers: s.hub.serverStatus(),
     tools: tools.map(({ id, server, name, title, description, readOnly, autoRun }) => ({ id, server, name, title, description, readOnly, autoRun })),
     widgets: widgets.map(({ id, name, ask }) => ({ id, name, ask })),
-    router: { name: d.second ? `${d.s1.name} + ${d.second.name}` : d.s1.name, up: router.type === "llm" || (await up(`${router.baseUrl}/v1/models`)) },
-    llm: { name: `${llm.model} (${llm.provider})`, up: llm.provider !== "ollama" || (await up(`${llm.baseUrl ?? "http://127.0.0.1:11434"}/api/tags`)) },
+    router: { name: d.s1.name, up: router.type === "llm" || (await up(`${router.baseUrl}/v1/models`, router.apiKey)) },
+    llm: { name: `${d.llm.name} (${llm.provider})`, up: llm.provider !== "ollama" || (await up(`${llm.baseUrl ?? "http://127.0.0.1:11434"}/api/tags`)) },
   };
 }
 export type Catalog = Awaited<ReturnType<typeof catalog>>;

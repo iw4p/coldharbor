@@ -20,6 +20,21 @@ const MAX_DEPTH = 3, MAX_FIELDS = 14;
 const leaf = (key: string) => key.split(".").pop()!.toLowerCase();
 const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const isRecordList = (v: unknown): v is Record<string, unknown>[] => Array.isArray(v) && v.length > 0 && v.every(isPlainObject);
+const isScalar = (v: unknown) => v == null || typeof v !== "object";
+
+/** Columns → rows: { time: [...], temp: [...] }, an object whose values are all equally long lists of plain values. */
+function normalize(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(normalize);
+  if (!isPlainObject(v)) return v;
+  const cols = Object.values(v), n = Array.isArray(cols[0]) ? cols[0].length : 0;
+  if (cols.length >= 2 && n >= 2 && cols.every((c) => Array.isArray(c) && c.length === n && c.every(isScalar)))
+    return Array.from({ length: n }, (_, i) => Object.fromEntries(Object.entries(v).map(([k, c]) => [k, (c as unknown[])[i]])));
+  return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, normalize(x)]));
+}
+
+/** Unix timestamps (seconds or milliseconds) in a field named like a time: "t", "time", "created_at"… */
+const TIME_KEY = /^(t|ts|time|timestamp|date|datetime|year)$|_(at|time|date)$/i;
+const isEpoch = (v: unknown) => typeof v === "number" && ((v >= 1e9 && v < 1e10) || (v >= 1e12 && v < 1e13));
 
 /** A name for an object inside a list, e.g. a label's name or a user's login. */
 function nameOf(o: Record<string, unknown>): string | undefined {
@@ -44,6 +59,7 @@ function flatten(obj: Record<string, unknown>, prefix = "", depth = 0, out: Reco
 function typeOf(key: string, values: Value[]): FieldType {
   const vs = values.filter((v) => v != null && v !== "");
   if (!vs.length) return "string";
+  if (TIME_KEY.test(leaf(key)) && vs.every((v) => /^(1[5-9]|2[01])\d\d$/.test(String(v)))) return "time"; // a "year" column
   if (vs.every((v) => typeof v === "number")) return LAT.test(leaf(key)) ? "lat" : LON.test(leaf(key)) ? "lon" : "number";
   const ss = vs.map(String);
   if (ss.every((s) => ISO_DATE.test(s))) return "time";
@@ -63,7 +79,6 @@ function isNoise(key: string, type: FieldType, values: Value[]) {
   // All zeros / all "no": nothing to see.
   if (values.every((v) => v == null || v === 0 || v === "no" || v === "")) return true;
   if (type === "url" && values.some((v) => typeof v === "string" && /\/\/api\.|\/api\/|\/repos\//.test(v))) return true;
-  if (k.endsWith("_url") && !URL_KEYS.includes(k)) return true;
   return false;
 }
 
@@ -83,6 +98,8 @@ function findRecords(data: unknown, depth = 0): { records: Record<string, unknow
 function recordsToFrame(records: Record<string, unknown>[], title: string, total?: number): Frame {
   const flat = records.map((r) => flatten(r));
   const keys = [...new Set(flat.flatMap((r) => Object.keys(r)))];
+  for (const k of keys.filter((k) => TIME_KEY.test(leaf(k)) && flat.every((r) => r[k] == null || isEpoch(r[k]))))
+    for (const r of flat) if (typeof r[k] === "number") r[k] = new Date(r[k] < 1e11 ? r[k] * 1000 : r[k]).toISOString();
   let fields: Field[] = keys
     .map((k) => ({ name: k, type: typeOf(k, flat.map((r) => r[k] ?? null)) }))
     .filter((f) => flat.some((r) => r[f.name] != null && r[f.name] !== ""));
@@ -95,7 +112,8 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
       .sort((a, b) => depth(a) - depth(b) || names.indexOf(leaf(a.name)) - names.indexOf(leaf(b.name)))[0];
   // Fallback title: the first text field whose values look like names, not flags ("yes", "false").
   const flagLike = (f: Field) => flat.every((r) => r[f.name] == null || /^(yes|no|true|false)$/i.test(String(r[f.name])));
-  let label = byLeaf(LABEL_KEYS.filter((k) => k !== "email"), (f) => f.type === "string" || f.type === "text") ?? fields.find((f) => f.type === "string" && !flagLike(f));
+  const varies = (f: Field) => flat.length < 2 || new Set(flat.map((r) => r[f.name])).size > 1;
+  let label = byLeaf(LABEL_KEYS.filter((k) => k !== "email"), (f) => f.type === "string" || f.type === "text") ?? fields.find((f) => f.type === "string" && !flagLike(f) && varies(f));
   const url = byLeaf(URL_KEYS, (f) => f.type === "url" && !isNoise(f.name, f.type, flat.map((r) => r[f.name] ?? null)))
     ?? fields.find((f) => f.type === "url" && !isNoise(f.name, f.type, flat.map((r) => r[f.name] ?? null)));
   const group = flat.length >= 2 ? byLeaf(GROUP_KEYS, (f) => {
@@ -116,7 +134,7 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
     const id = fields.find((f) => (leaf(f.name) === "id" || leaf(f.name).endsWith("_id")) && f.type !== "url");
     if (id) label = id;
   }
-  const keep = new Set([label?.name, url?.name, group?.name].filter(Boolean));
+  const keep = new Set([label?.name, url?.name, group?.name, ...fields.filter((f) => f.type === "lat" || f.type === "lon").map((f) => f.name)].filter(Boolean));
   fields = fields.filter((f) => {
     if (keep.has(f.name)) return true;
     const values = flat.map((r) => r[f.name] ?? null);
@@ -140,10 +158,17 @@ function recordsToFrame(records: Record<string, unknown>[], title: string, total
   for (const f of fields) if (f.name.includes(".")) f.label = (clash.has(leaf(f.name)) ? f.name.split(".").slice(-2).join(" ") : leaf(f.name)).replace(/_/g, " ");
 
   const prefer: string[] = [];
+  // Places are best seen where they are.
+  if (flat.length > 1 && fields.some((f) => f.type === "lat") && fields.some((f) => f.type === "lon")) prefer.push("map");
   if (flat.length === 1) prefer.push("detail");
   else if (label && url) prefer.push("feed", ...(group ? ["kanban"] : []), "table");
   else if (label && fields.some((f) => f.type === "number")) prefer.push("table", "bar");
+  // Unnamed rows over time (a forecast, a price history) are a series.
+  else if (fields.some((f) => f.type === "time") && fields.some((f) => f.type === "number")) prefer.push("line", "table");
   if (!prefer.includes("table")) prefer.push("table");
+  // A series reads oldest first.
+  const time = prefer[0] === "line" && fields.find((f) => f.type === "time")?.name;
+  if (time) flat.sort((a, b) => String(a[time]).localeCompare(String(b[time])));
 
   return {
     title,
@@ -191,6 +216,7 @@ const UNITS: Record<string, number> = { b: 1, kb: 1e3, mb: 1e6, gb: 1e9, tb: 1e1
 function scalarOf(v: string): Value {
   const t = v.trim();
   if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
+  if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) return Number(t.replaceAll(",", ""));
   if (/^(true|false)$/i.test(t)) return /^true$/i.test(t) ? "yes" : "no";
   const m = t.match(SIZE);
   if (m) return Math.round(Number(m[1]) * UNITS[m[2].toLowerCase()]);
@@ -199,7 +225,8 @@ function scalarOf(v: string): Value {
 
 /** Turns printed data into objects when it has a recognisable shape; otherwise returns the text. */
 export function parseText(text: string): unknown {
-  const t = text.trim().replace(/^```\w*\n([\s\S]*?)\n```$/, "$1").trim();
+  // Some servers escape their newlines once or twice ("a\\nb"); a one-line text with those is really several lines.
+  const t = (text.includes("\n") ? text : text.replace(/\\+n/g, "\n")).trim().replace(/^```\w*\n([\s\S]*?)\n```$/, "$1").trim();
   const tryParse = (s: string) => { try { return JSON.parse(s); } catch { const p = pythonToJson(s); if (p) try { return JSON.parse(p); } catch {} } };
 
   // JSON (or Python literals), whole or embedded after a sentence ("Found 3 rows: [...]").
@@ -215,12 +242,12 @@ export function parseText(text: string): unknown {
   if (lines.length < 2) return text;
   const most = (re: RegExp) => lines.filter((l) => re.test(l)).length >= Math.max(2, lines.length * 0.8);
 
-  // Markdown table.
-  if (most(/^\s*\|.*\|\s*$/)) {
+  // Markdown table, with or without outer pipes, maybe under a title: found by its "--- | ---" line.
+  const sep = lines.findIndex((l) => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(l));
+  if (sep > 0) {
     const cells = (l: string) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
-    const rows = lines.filter((l) => l.includes("|") && !/^\s*\|?\s*:?-{2,}/.test(l));
-    const head = cells(rows[0]);
-    return rows.slice(1).map((r) => Object.fromEntries(cells(r).map((c, i) => [head[i] || `col${i + 1}`, scalarOf(c)])));
+    const head = cells(lines[sep - 1]);
+    return lines.slice(sep + 1).filter((l) => l.includes("|")).map((r) => Object.fromEntries(cells(r).map((c, i) => [head[i] || `col${i + 1}`, scalarOf(c)])));
   }
   // Tagged lines: "[DIR] apps", "[FILE] LICENSE    1.05 KB".
   const TAG = /^\s*\[([^\]]{1,20})\]\s+(.+?)(?:\s{2,}(\S.*))?$/;
@@ -252,6 +279,7 @@ export function inferFrames(data: unknown, title: string): Frame[] {
     const parsed = parseText(data);
     return typeof parsed === "string" ? [textFrame(parsed, title)] : inferFrames(parsed, title);
   }
+  data = normalize(data);
   // { content: "..." }: a wrapper around printed text.
   if (isPlainObject(data)) {
     const vals = Object.values(data);

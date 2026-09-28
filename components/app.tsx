@@ -22,12 +22,16 @@ export function ColdHarborApp() {
   };
 
   return (
-    <div className="grid h-dvh grid-cols-1 md:grid-cols-[380px_1fr]">
-      <aside className="flex min-h-0 flex-col border-r bg-card/60 max-md:h-[45dvh] max-md:border-b max-md:border-r-0">
-        <div className="flex items-center gap-2 border-b px-4 py-3">
+    <div className="grid h-dvh grid-cols-1 max-md:grid-rows-[1fr_45dvh] md:grid-cols-[1fr_400px]">
+      <main className="coldharbor-canvas min-h-0 overflow-y-auto">
+        <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background/70 px-5 py-2.5 backdrop-blur">
           <Logo />
-          <span className="font-semibold tracking-tight">ColdHarbor</span>
-          <div className="ml-auto flex items-center gap-1">
+          <span className="whitespace-nowrap font-semibold tracking-tight">ColdHarbor</span>
+          {tiles.length > 0 && <span className="whitespace-nowrap text-sm text-muted-foreground">· {tiles.length} tile{tiles.length === 1 ? "" : "s"}</span>}
+          <div className="ml-auto flex items-center gap-2">
+            <Health ok={g.catalog?.router.up} label={g.catalog?.router.name ?? "router"} />
+            <Health ok={g.catalog?.llm.up} label={g.catalog?.llm.name.split(" ")[0] ?? "llm"} />
+            <Sources catalog={g.catalog} onOpen={g.loadCatalog} />
             <Button variant="ghost" size="icon" className="size-8" aria-label="Toggle theme" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
               <Sun className="hidden size-4 dark:block" />
               <Moon className="size-4 dark:hidden" />
@@ -35,18 +39,6 @@ export function ColdHarborApp() {
             <Button variant="ghost" size="icon" className="size-8" aria-label="Clear canvas" onClick={() => g.send({ clear: true })}>
               <Trash2 className="size-4" />
             </Button>
-          </div>
-        </div>
-        <Chat runs={runs} busy={g.busy} active={g.active} focus={focus} send={g.send} onClearFocus={() => g.setFocus(undefined)} onShowTile={showTile} />
-      </aside>
-
-      <main className="coldharbor-canvas min-h-0 overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background/70 px-5 py-2.5 backdrop-blur">
-          <span className="text-sm text-muted-foreground">{tiles.length ? `${tiles.length} tile${tiles.length === 1 ? "" : "s"}` : "Canvas"}</span>
-          <div className="ml-auto flex items-center gap-2">
-            <Health ok={g.catalog?.router.up} label={g.catalog?.router.name ?? "router"} />
-            <Health ok={g.catalog?.llm.up} label={g.catalog?.llm.name.split(" ")[0] ?? "llm"} />
-            <Sources catalog={g.catalog} onOpen={g.loadCatalog} />
           </div>
         </div>
 
@@ -66,13 +58,17 @@ export function ColdHarborApp() {
           </LayoutGroup>
         )}
       </main>
+
+      <aside className="flex min-h-0 flex-col border-l bg-card/60 max-md:border-t max-md:border-l-0">
+        <Chat runs={runs} busy={g.busy} active={g.active} focus={focus} send={g.send} onClearFocus={() => g.setFocus(undefined)} onShowTile={showTile} />
+      </aside>
     </div>
   );
 }
 
 function Health({ ok, label }: { ok?: boolean; label: string }) {
   return (
-    <span className="hidden items-center gap-1.5 rounded-full border bg-background/60 px-2.5 py-1 text-xs text-muted-foreground sm:flex">
+    <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border bg-background/60 px-2.5 py-1 text-xs text-muted-foreground lg:flex">
       <span className={ok === undefined ? "size-1.5 rounded-full bg-muted-foreground/40" : ok ? "size-1.5 rounded-full bg-emerald-500" : "size-1.5 rounded-full bg-rose-500"} />
       {label}
     </span>

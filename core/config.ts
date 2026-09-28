@@ -17,11 +17,16 @@ export const ServerConfig = z.union([
 
 export const Config = z.object({
   /**
-   * Who answers the quick questions. "hybrid": Kev, with the LLM as a second opinion when Kev is unsure which tool is meant.
-   * "kev": Kev only (fastest). "llm": the LLM answers everything (needs nothing extra, slowest).
+   * Who answers the quick questions: a System One endpoint, local Kev or hosted Jev (TypeSafe). "hybrid": with the LLM as a
+   * second opinion when it's unsure which tool is meant. "kev": System One only (fastest). "llm": the LLM answers everything.
    */
   router: z.union([
-    z.object({ type: z.enum(["kev", "hybrid"]), baseUrl: z.string().default("http://127.0.0.1:8009"), apiKey: z.string().optional() }),
+    z.object({
+      type: z.enum(["kev", "hybrid"]),
+      baseUrl: z.string().default("http://127.0.0.1:8009"),
+      model: z.string().default("kev-latest"),
+      apiKey: z.string().optional(),
+    }),
     z.object({ type: z.literal("llm") }),
   ]).prefault({ type: "hybrid" }),
   /** The chat model that fills in tool arguments. "openai" works with any compatible server (LM Studio, vLLM, llama.cpp, OpenRouter…). */

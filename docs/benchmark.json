@@ -1,70 +1,70 @@
 {
-  "date": "2026-09-27T23:29:40.701Z",
+  "date": "2026-09-28T22:10:33.444Z",
   "llm": {
-    "provider": "ollama",
-    "model": "qwen3.5:latest"
+    "provider": "openai",
+    "model": "qwen/qwen3.8-27b",
+    "baseUrl": "https://api.groq.com/openai/v1"
   },
-  "kev": "jaredpalmer/kev-0.8b",
   "summary": {
     "before": {
-      "n": 32,
-      "tool": 32,
-      "widget": 28,
+      "n": 38,
+      "tool": 37,
+      "widget": 29,
       "both": 28,
-      "confidentlyWrong": 0,
+      "confidentlyWrong": 1,
       "escalated": 0,
       "byKind": {
-        "direct": "19/20",
-        "follow-up": "8/8",
+        "direct": "20/26",
+        "follow-up": "7/8",
         "off-topic": "1/4"
       },
-      "p50": 17555.596791999997,
-      "p95": 23410.37241699999,
-      "mean": 17372.535899906252,
-      "convoOk": 8,
+      "p50": 7832.007083000004,
+      "p95": 10684.084167,
+      "mean": 6843.807342026316,
+      "convoOk": 7,
       "convoN": 9,
-      "convoMs": 182827.60795799992,
-      "convoLlm": 15
+      "convoMs": 103840.57345799991,
+      "convoLlm": 24
     },
     "kev": {
-      "n": 32,
-      "tool": 27,
-      "widget": 32,
-      "both": 27,
-      "confidentlyWrong": 0,
+      "n": 38,
+      "tool": 35,
+      "widget": 38,
+      "both": 35,
+      "confidentlyWrong": 2,
       "escalated": 0,
       "byKind": {
-        "direct": "15/20",
+        "direct": "23/26",
         "follow-up": "8/8",
         "off-topic": "4/4"
       },
-      "p50": 1555.701708000037,
-      "p95": 1896.1904169999762,
-      "mean": 1559.7216705312385,
+      "p50": 526.9387500000303,
+      "p95": 625.7457909999648,
+      "mean": 506.39069202631606,
       "convoOk": 9,
       "convoN": 9,
-      "convoMs": 49908.674749000114,
+      "convoMs": 73773.86374900001,
       "convoLlm": 6
     },
     "hybrid": {
-      "n": 32,
-      "tool": 30,
-      "widget": 32,
-      "both": 30,
-      "confidentlyWrong": 0,
-      "escalated": 9,
+      "n": 38,
+      "tool": 36,
+      "widget": 38,
+      "both": 36,
+      "confidentlyWrong": 2,
+      "escalated": 3,
       "byKind": {
-        "direct": "18/20",
+        "direct": "24/26",
         "follow-up": "8/8",
         "off-topic": "4/4"
       },
-      "p50": 1581.267165999976,
-      "p95": 5505.294125000015,
-      "mean": 2569.4161053750067,
+      "p50": 543.304541999998,
+      "p95": 756.025250000006,
+      "mean": 528.6061087105176,
       "convoOk": 9,
       "convoN": 9,
-      "convoMs": 76196.91454199993,
-      "convoLlm": 10
+      "convoMs": 81994.79958300001,
+      "convoLlm": 8
     }
   },
   "cases": [
@@ -72,7 +72,7 @@
       "kind": "direct",
       "message": "What's the weather in Berlin this week?",
       "tool": [
-        "weather.forecast"
+        "weather.weather_forecast"
       ],
       "widget": [
         ""
@@ -82,7 +82,7 @@
       "kind": "direct",
       "message": "will it rain in London tomorrow?",
       "tool": [
-        "weather.forecast"
+        "weather.weather_forecast"
       ],
       "widget": [
         ""
@@ -92,7 +92,7 @@
       "kind": "direct",
       "message": "how cold will it get in Oslo this weekend",
       "tool": [
-        "weather.forecast"
+        "weather.weather_forecast"
       ],
       "widget": [
         ""
@@ -100,19 +100,9 @@
     },
     {
       "kind": "direct",
-      "message": "weather in Berlin, Paris and Rome on a map",
-      "tool": [
-        "weather.forecast"
-      ],
-      "widget": [
-        "map"
-      ]
-    },
-    {
-      "kind": "direct",
       "message": "temperature in Tokyo for the next 10 days as a line chart",
       "tool": [
-        "weather.forecast"
+        "weather.weather_forecast"
       ],
       "widget": [
         "line"
@@ -120,9 +110,20 @@
     },
     {
       "kind": "direct",
-      "message": "How has Apple stock done this year?",
+      "message": "weather in Paris as a table",
       "tool": [
-        "markets.stock_prices"
+        "weather.weather_forecast"
+      ],
+      "widget": [
+        "table"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "how warm was it in Rome last month?",
+      "tool": [
+        "weather.weather_archive",
+        "weather.weather_forecast"
       ],
       "widget": [
         "",
@@ -131,30 +132,9 @@
     },
     {
       "kind": "direct",
-      "message": "compare Tesla and Nvidia in a chart",
+      "message": "air quality in Delhi today",
       "tool": [
-        "markets.stock_prices"
-      ],
-      "widget": [
-        "line",
-        "bar"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "MSFT share price over the last 5 days as a table",
-      "tool": [
-        "markets.stock_prices"
-      ],
-      "widget": [
-        "table"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "is Amazon stock up this month?",
-      "tool": [
-        "markets.stock_prices"
+        "weather.air_quality"
       ],
       "widget": [
         ""
@@ -164,7 +144,7 @@
       "kind": "direct",
       "message": "bitcoin price right now",
       "tool": [
-        "markets.crypto_prices"
+        "crypto.coingecko_get_prices"
       ],
       "widget": [
         "",
@@ -173,9 +153,20 @@
     },
     {
       "kind": "direct",
-      "message": "ETH vs SOL this month",
+      "message": "how much is one dogecoin worth",
       "tool": [
-        "markets.crypto_prices"
+        "crypto.coingecko_get_prices"
+      ],
+      "widget": [
+        "",
+        "stat"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "bitcoin price over the last 30 days",
+      "tool": [
+        "crypto.coingecko_get_market_chart"
       ],
       "widget": [
         "",
@@ -184,9 +175,32 @@
     },
     {
       "kind": "direct",
-      "message": "how much is one dogecoin worth",
+      "message": "which coins are trending right now?",
       "tool": [
-        "markets.crypto_prices"
+        "crypto.coingecko_get_trending"
+      ],
+      "widget": [
+        "",
+        "table"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "top 10 cryptocurrencies by market cap",
+      "tool": [
+        "crypto.coingecko_list_markets"
+      ],
+      "widget": [
+        "",
+        "table"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "how big is the whole crypto market?",
+      "tool": [
+        "crypto.coingecko_get_global",
+        "crypto.coingecko_list_markets"
       ],
       "widget": [
         "",
@@ -195,9 +209,64 @@
     },
     {
       "kind": "direct",
-      "message": "euro to dollar over the last 3 months as a table",
+      "message": "top stories on Hacker News",
       "tool": [
-        "markets.exchange_rates"
+        "hackernews.getTopStories"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "latest Show HN posts",
+      "tool": [
+        "hackernews.getShowHNStories"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "what are people asking on Ask HN?",
+      "tool": [
+        "hackernews.getAskHNStories"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "newest Hacker News submissions",
+      "tool": [
+        "hackernews.getNewStories"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "Hacker News job postings",
+      "tool": [
+        "hackernews.getJobStories"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "best Hacker News stories as a table",
+      "tool": [
+        "hackernews.getBestStories"
       ],
       "widget": [
         "table"
@@ -205,78 +274,79 @@
     },
     {
       "kind": "direct",
-      "message": "EUR to GBP rate",
+      "message": "bar chart of the top Hacker News stories by score",
       "tool": [
-        "markets.exchange_rates"
-      ],
-      "widget": [
-        "",
-        "stat"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "how many yen is one dollar",
-      "tool": [
-        "markets.exchange_rates"
-      ],
-      "widget": [
-        "",
-        "stat"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "latest news about electric cars",
-      "tool": [
-        "news.search_news"
-      ],
-      "widget": [
-        "",
-        "feed"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "what's happening with the elections in Brazil",
-      "tool": [
-        "news.search_news"
-      ],
-      "widget": [
-        "",
-        "feed"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "headlines on AI regulation",
-      "tool": [
-        "news.search_news"
-      ],
-      "widget": [
-        "",
-        "feed"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "any news about the earthquake in Japan",
-      "tool": [
-        "news.search_news"
-      ],
-      "widget": [
-        "",
-        "feed"
-      ]
-    },
-    {
-      "kind": "direct",
-      "message": "bar chart of news about OpenAI by country",
-      "tool": [
-        "news.search_news"
+        "hackernews.getTopStories"
       ],
       "widget": [
         "bar"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "big earthquakes this week",
+      "tool": [
+        "earthquakes.earthquake_get_feed",
+        "earthquakes.earthquake_search"
+      ],
+      "widget": [
+        "",
+        "map"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "earthquakes near Tokyo this month on a map",
+      "tool": [
+        "earthquakes.earthquake_search"
+      ],
+      "widget": [
+        "map"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "GDP of Germany since 2000",
+      "tool": [
+        "worldbank.get-economic-data"
+      ],
+      "widget": [
+        "",
+        "line"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "life expectancy in Japan",
+      "tool": [
+        "worldbank.get-health-data",
+        "worldbank.get-social-data"
+      ],
+      "widget": [
+        "",
+        "line"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "latest papers on small language models",
+      "tool": [
+        "arxiv.arxiv_search"
+      ],
+      "widget": [
+        "",
+        "feed"
+      ]
+    },
+    {
+      "kind": "direct",
+      "message": "find arXiv papers about diffusion models",
+      "tool": [
+        "arxiv.arxiv_search"
+      ],
+      "widget": [
+        "",
+        "feed"
       ]
     },
     {
@@ -335,7 +405,7 @@
       "message": "what about Tehran?",
       "tool": [
         "none",
-        "weather.forecast"
+        "weather.weather_forecast"
       ],
       "widget": [
         ""
@@ -343,10 +413,11 @@
     },
     {
       "kind": "follow-up",
-      "message": "compare it with Nvidia",
+      "message": "compare it with ethereum",
       "tool": [
         "none",
-        "markets.stock_prices"
+        "crypto.coingecko_get_prices",
+        "crypto.coingecko_get_market_chart"
       ],
       "widget": [
         ""
@@ -406,321 +477,381 @@
   "routing": {
     "before": [
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.76,
         "widget": "",
         "escalated": false,
-        "ms": 10074.837291999998,
+        "ms": 703.1441249999998,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.76,
         "widget": "",
         "escalated": false,
-        "ms": 9815.350625,
+        "ms": 613.7516669999995,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8,
-        "widget": "",
+        "tool": "weather.weather_forecast",
+        "toolP": 0.76,
+        "widget": "stat",
         "escalated": false,
-        "ms": 10055.057541999999,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "weather.forecast",
-        "toolP": 0.8,
-        "widget": "map",
-        "escalated": false,
-        "ms": 10348.433291000001,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "weather.forecast",
-        "toolP": 0.8,
-        "widget": "line",
-        "escalated": false,
-        "ms": 11539.464166999998,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.8,
-        "widget": "line",
-        "escalated": false,
-        "ms": 13029.518541999998,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.8,
-        "widget": "line",
-        "escalated": false,
-        "ms": 15303.903084000005,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.8,
-        "widget": "table",
-        "escalated": false,
-        "ms": 18731.692041000002,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.8,
-        "widget": "line",
-        "escalated": false,
-        "ms": 23410.37241699999,
+        "ms": 710.1815000000006,
         "toolOk": true,
         "widgetOk": false,
         "confidentlyWrong": false
       },
       {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8,
-        "widget": "stat",
-        "escalated": false,
-        "ms": 23269.725000000006,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.76,
         "widget": "line",
         "escalated": false,
-        "ms": 24288.793334000016,
+        "ms": 530.5290420000001,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8,
-        "widget": "stat",
-        "escalated": false,
-        "ms": 22468.565541000018,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.exchange_rates",
-        "toolP": 0.8,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.76,
         "widget": "table",
         "escalated": false,
-        "ms": 21097.090083999996,
+        "ms": 606.3102079999999,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "markets.exchange_rates",
-        "toolP": 0.8,
-        "widget": "",
-        "escalated": false,
-        "ms": 20741.317374999984,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.exchange_rates",
-        "toolP": 0.8,
+        "tool": "weather.weather_archive",
+        "toolP": 0.76,
         "widget": "stat",
         "escalated": false,
-        "ms": 20722.94783399999,
+        "ms": 6757.007791,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.air_quality",
+        "toolP": 0.784,
+        "widget": "",
+        "escalated": false,
+        "ms": 10684.084167,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "news.search_news",
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 0.76,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 9954.819500000001,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 0.76,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 8785.769334000004,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_market_chart",
+        "toolP": 0.784,
+        "widget": "line",
+        "escalated": false,
+        "ms": 9865.924707999999,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_trending",
         "toolP": 0.8,
         "widget": "feed",
         "escalated": false,
-        "ms": 20833.930458999996,
+        "ms": 9018.290291999998,
         "toolOk": true,
-        "widgetOk": true,
+        "widgetOk": false,
         "confidentlyWrong": false
       },
       {
-        "tool": "news.search_news",
-        "toolP": 0.8,
-        "widget": "",
-        "escalated": false,
-        "ms": 20748.418958000024,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.8,
-        "widget": "feed",
-        "escalated": false,
-        "ms": 19472.82500000001,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.8,
-        "widget": "",
-        "escalated": false,
-        "ms": 17439.551875000005,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.8,
+        "tool": "crypto.coingecko_list_markets",
+        "toolP": 0.9603999999999999,
         "widget": "bar",
         "escalated": false,
-        "ms": 17555.596791999997,
+        "ms": 10031.111458,
         "toolOk": true,
-        "widgetOk": true,
+        "widgetOk": false,
         "confidentlyWrong": false
       },
       {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "table",
-        "escalated": false,
-        "ms": 18629.551124999998,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "bar",
-        "escalated": false,
-        "ms": 17473.84366700001,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "map",
-        "escalated": false,
-        "ms": 18898.725124999997,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "line",
-        "escalated": false,
-        "ms": 19451.504958000034,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
+        "tool": "crypto.coingecko_get_global",
+        "toolP": 0.784,
         "widget": "stat",
         "escalated": false,
-        "ms": 16630.93320899998,
+        "ms": 8780.326667000001,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getTopStories",
+        "toolP": 0.784,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 8649.937208000003,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getShowHNStories",
+        "toolP": 0.76,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 8667.921958000006,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getAskHNStories",
+        "toolP": 0.9309999999999999,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 8010.506083,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getNewStories",
+        "toolP": 0.784,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 8810.642166000005,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getJobStories",
+        "toolP": 0.784,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 7886.013416999995,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getBestStories",
+        "toolP": 0.8,
+        "widget": "table",
+        "escalated": false,
+        "ms": 8427.037874999995,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getTopStories",
+        "toolP": 0.76,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 8948.631790999993,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "earthquakes.earthquake_search",
+        "toolP": 0.76,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 7832.007083000004,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "earthquakes.earthquake_search",
+        "toolP": 0.7200000000000001,
+        "widget": "map",
+        "escalated": false,
+        "ms": 7697.841875000013,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "worldbank.get-economic-data",
+        "toolP": 0.76,
+        "widget": "line",
+        "escalated": false,
+        "ms": 7907.25,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "worldbank.get-health-data",
+        "toolP": 0.76,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 7728.1831250000105,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "arxiv.arxiv_search",
+        "toolP": 0.76,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 6803.692875000008,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "arxiv.arxiv_search",
+        "toolP": 0.784,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 8727.967375000007,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.033333333333333326,
+        "toolP": 0,
+        "widget": "table",
+        "escalated": false,
+        "ms": 5365.562707999983,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 5410.802708000003,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "map",
+        "escalated": false,
+        "ms": 5357.331458000001,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "line",
+        "escalated": false,
+        "ms": 6541.608707999985,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 5400.937291999988,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.geocoding",
+        "toolP": 0.6649999999999999,
         "widget": "",
         "escalated": false,
-        "ms": 16522.22662500001,
-        "toolOk": true,
+        "ms": 10798.107749999996,
+        "toolOk": false,
         "widgetOk": true,
-        "confidentlyWrong": false
+        "confidentlyWrong": true
       },
       {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 0.9025,
         "widget": "",
         "escalated": false,
-        "ms": 16124.504709,
+        "ms": 8630.434666999994,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.033333333333333326,
+        "toolP": 0,
         "widget": "",
         "escalated": false,
-        "ms": 17910.288584000024,
+        "ms": 6373.77895800001,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.033333333333333326,
+        "toolP": 0,
         "widget": "text",
         "escalated": false,
-        "ms": 15973.287791999988,
+        "ms": 5559.232541000005,
         "toolOk": true,
         "widgetOk": false,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "detail",
-        "escalated": false,
-        "ms": 15772.792749999964,
-        "toolOk": true,
-        "widgetOk": false,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
+        "toolP": 0,
         "widget": "text",
         "escalated": false,
-        "ms": 15711.91654200002,
+        "ms": 5510.398125000007,
         "toolOk": true,
         "widgetOk": false,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.033333333333333326,
+        "toolP": 0,
+        "widget": "text",
+        "escalated": false,
+        "ms": 6509.136624999985,
+        "toolOk": true,
+        "widgetOk": false,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
         "widget": "",
         "escalated": false,
-        "ms": 15874.182457999908,
+        "ms": 5468.464166999998,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
@@ -728,321 +859,381 @@
     ],
     "kev": [
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8898,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.76,
         "widget": "",
         "escalated": false,
-        "ms": 1470.8770409999415,
+        "ms": 495.8434170000255,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8807,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.96,
         "widget": "",
         "escalated": false,
-        "ms": 1144.7387500000186,
+        "ms": 578.2824580000015,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8955,
+        "tool": "weather.metno_forecast",
+        "toolP": 0.84,
         "widget": "",
         "escalated": false,
-        "ms": 1204.0092919999734,
-        "toolOk": true,
+        "ms": 541.5543329999782,
+        "toolOk": false,
         "widgetOk": true,
-        "confidentlyWrong": false
+        "confidentlyWrong": true
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.6172,
-        "widget": "map",
-        "escalated": false,
-        "ms": 1361.249124999973,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "weather.forecast",
-        "toolP": 0.9024,
+        "tool": "weather.jma_forecast",
+        "toolP": 0.58,
         "widget": "line",
         "escalated": false,
-        "ms": 1956.721499999985,
-        "toolOk": true,
+        "ms": 514.951166999992,
+        "toolOk": false,
         "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.7726,
-        "widget": "",
-        "escalated": false,
-        "ms": 1896.1904169999762,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
+        "confidentlyWrong": true
       },
       {
         "tool": "none",
-        "toolP": 0.4639,
+        "toolP": 0.51,
+        "widget": "table",
+        "escalated": false,
+        "ms": 591.5442500000354,
+        "toolOk": false,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.weather_archive",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 512.1252090000198,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "weather.air_quality",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 529.8522089999751,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 0.99,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 563.9441250000382,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 0.99,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 695.6940409999806,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_market_chart",
+        "toolP": 1,
         "widget": "line",
         "escalated": false,
-        "ms": 1596.4314170000143,
-        "toolOk": false,
+        "ms": 519.2603750000126,
+        "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "markets.stock_prices",
-        "toolP": 0.8358,
+        "tool": "crypto.coingecko_get_trending",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 526.9387500000303,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_list_markets",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 502.25016700004926,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_global",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 548.6469170000055,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getTopStories",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 581.328125,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getShowHNStories",
+        "toolP": 0.97,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 497.1162089999998,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getAskHNStories",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 573.7130419999594,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getNewStories",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 516.3007090000319,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getJobStories",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 625.7457909999648,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getBestStories",
+        "toolP": 1,
         "widget": "table",
         "escalated": false,
-        "ms": 1505.125708000036,
+        "ms": 545.2173750000075,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "markets.stock_prices",
-        "toolP": 0.7153,
-        "widget": "",
-        "escalated": false,
-        "ms": 1573.6468330000062,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.9221,
-        "widget": "",
-        "escalated": false,
-        "ms": 1538.899541999912,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8296,
-        "widget": "",
-        "escalated": false,
-        "ms": 1759.315457999939,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8208,
-        "widget": "",
-        "escalated": false,
-        "ms": 1612.4867089999607,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.4664,
-        "widget": "table",
-        "escalated": false,
-        "ms": 1584.3774579999736,
-        "toolOk": false,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.exchange_rates",
-        "toolP": 0.5515,
-        "widget": "",
-        "escalated": false,
-        "ms": 1549.0328750000335,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.2818,
-        "widget": "",
-        "escalated": false,
-        "ms": 1587.921500000055,
-        "toolOk": false,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.5533,
-        "widget": "",
-        "escalated": false,
-        "ms": 1555.701708000037,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.4779,
-        "widget": "",
-        "escalated": false,
-        "ms": 1608.6952080000192,
-        "toolOk": false,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.5495,
-        "widget": "",
-        "escalated": false,
-        "ms": 1620.9049580000574,
-        "toolOk": false,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.7068,
-        "widget": "",
-        "escalated": false,
-        "ms": 1550.0603749998845,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.5662,
+        "tool": "hackernews.getTopStories",
+        "toolP": 0.96,
         "widget": "bar",
         "escalated": false,
-        "ms": 1529.0854579999577,
+        "ms": 513.6266670000041,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "none",
-        "toolP": 0.0796,
-        "widget": "table",
+        "tool": "earthquakes.earthquake_get_feed",
+        "toolP": 0.73,
+        "widget": "",
         "escalated": false,
-        "ms": 1543.4237079999875,
+        "ms": 527.2506669999566,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "none",
-        "toolP": 0.1024,
-        "widget": "bar",
-        "escalated": false,
-        "ms": 1534.4168330000248,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.0494,
+        "tool": "earthquakes.earthquake_search",
+        "toolP": 0.91,
         "widget": "map",
         "escalated": false,
-        "ms": 1551.2973340000026,
+        "ms": 487.975334000017,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "worldbank.get-economic-data",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 545.3258339999593,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "worldbank.get-health-data",
+        "toolP": 0.9306,
+        "widget": "",
+        "escalated": false,
+        "ms": 525.3558750000084,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "arxiv.arxiv_search",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 587.1130419999827,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "arxiv.arxiv_search",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 591.648291999998,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.1056,
+        "toolP": 0,
+        "widget": "table",
+        "escalated": false,
+        "ms": 247.47629100002814,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 420.037416999985,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.07560000000000001,
+        "widget": "map",
+        "escalated": false,
+        "ms": 609.0960830000113,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
         "widget": "line",
         "escalated": false,
-        "ms": 1542.157375000068,
+        "ms": 440.39904200000456,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.0951,
-        "widget": "",
+        "toolP": 0,
+        "widget": "stat",
         "escalated": false,
-        "ms": 1566.935749999946,
+        "ms": 239.29033400001936,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.2096,
+        "toolP": 0.3367,
         "widget": "",
         "escalated": false,
-        "ms": 1659.6334169999463,
+        "ms": 607.6703329999582,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.1437,
+        "toolP": 0.42719999999999997,
         "widget": "",
         "escalated": false,
-        "ms": 1463.9036250000354,
+        "ms": 525.0185829999973,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.1034,
+        "toolP": 0.08,
         "widget": "",
         "escalated": false,
-        "ms": 1516.673625000054,
+        "ms": 538.6528330000001,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.1853,
+        "toolP": 0,
         "widget": "",
         "escalated": false,
-        "ms": 1631.3189999999013,
+        "ms": 293.7004999999772,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.0528,
+        "toolP": 0.0792,
         "widget": "",
         "escalated": false,
-        "ms": 1648.3740830000024,
+        "ms": 506.1001249999972,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.0892,
+        "toolP": 0,
         "widget": "",
         "escalated": false,
-        "ms": 1569.516624999931,
+        "ms": 281.9494169999962,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.1758,
+        "toolP": 0,
         "widget": "",
         "escalated": false,
-        "ms": 1477.9707499999786,
+        "ms": 294.85095900000306,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
@@ -1050,321 +1241,381 @@
     ],
     "hybrid": [
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8898,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.79,
         "widget": "",
         "escalated": false,
-        "ms": 1974.783458000049,
+        "ms": 508.6215840000077,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8807,
+        "tool": "weather.weather_forecast",
+        "toolP": 0.97,
         "widget": "",
         "escalated": false,
-        "ms": 1642.9866659999825,
+        "ms": 570.8217499999446,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "weather.forecast",
-        "toolP": 0.8955,
+        "tool": "weather.metno_forecast",
+        "toolP": 0.87,
         "widget": "",
         "escalated": false,
-        "ms": 1579.472375000012,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "weather.forecast",
-        "toolP": 0.6172,
-        "widget": "map",
-        "escalated": false,
-        "ms": 1408.0384580000537,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "weather.forecast",
-        "toolP": 0.9024,
-        "widget": "line",
-        "escalated": false,
-        "ms": 1520.4784170000348,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.7726,
-        "widget": "",
-        "escalated": false,
-        "ms": 1698.1728750000475,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.4639,
-        "widget": "line",
-        "escalated": false,
-        "ms": 1581.3319999999367,
+        "ms": 565.5881669999799,
         "toolOk": false,
         "widgetOk": true,
-        "confidentlyWrong": false
+        "confidentlyWrong": true
       },
       {
-        "tool": "markets.stock_prices",
-        "toolP": 0.8358,
-        "widget": "table",
-        "escalated": false,
-        "ms": 1558.9832079999615,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.stock_prices",
-        "toolP": 0.7153,
-        "widget": "",
-        "escalated": false,
-        "ms": 1464.6134170000441,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.9221,
-        "widget": "",
-        "escalated": false,
-        "ms": 1507.0745830000378,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8296,
-        "widget": "",
-        "escalated": false,
-        "ms": 1488.8177920000162,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.crypto_prices",
-        "toolP": 0.8208,
-        "widget": "",
-        "escalated": false,
-        "ms": 1517.122875000001,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.4664,
-        "widget": "table",
-        "escalated": false,
-        "ms": 1488.371334000025,
-        "toolOk": false,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.exchange_rates",
-        "toolP": 0.5515,
-        "widget": "",
-        "escalated": false,
-        "ms": 1600.405708000064,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "markets.exchange_rates",
-        "toolP": 0.8,
-        "widget": "",
-        "escalated": true,
-        "ms": 4636.960916000069,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.5533,
-        "widget": "",
-        "escalated": false,
-        "ms": 1758.8555829999968,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.8,
-        "widget": "",
-        "escalated": true,
-        "ms": 4657.959125000052,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.8,
-        "widget": "",
-        "escalated": true,
-        "ms": 4795.3913329999195,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.7068,
-        "widget": "",
-        "escalated": false,
-        "ms": 1581.267165999976,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "news.search_news",
-        "toolP": 0.5662,
-        "widget": "bar",
-        "escalated": false,
-        "ms": 1547.5194159999955,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.0796,
-        "widget": "table",
-        "escalated": false,
-        "ms": 1523.578167000087,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.1024,
-        "widget": "bar",
-        "escalated": false,
-        "ms": 1417.0235000000102,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.0494,
-        "widget": "map",
-        "escalated": false,
-        "ms": 1550.9797089999774,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.1056,
+        "tool": "weather.jma_forecast",
+        "toolP": 0.6,
         "widget": "line",
         "escalated": false,
-        "ms": 1443.8810829999857,
-        "toolOk": true,
+        "ms": 592.6277089999639,
+        "toolOk": false,
         "widgetOk": true,
-        "confidentlyWrong": false
+        "confidentlyWrong": true
       },
       {
-        "tool": "none",
-        "toolP": 0,
-        "widget": "",
+        "tool": "weather.weather_forecast",
+        "toolP": 0.95,
+        "widget": "table",
         "escalated": true,
-        "ms": 5442.550167000038,
+        "ms": 659.1511249999749,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "",
-        "escalated": true,
-        "ms": 5083.623583000037,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0,
-        "widget": "",
-        "escalated": true,
-        "ms": 5505.294125000015,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0,
-        "widget": "",
-        "escalated": true,
-        "ms": 6584.784499999951,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.033333333333333326,
-        "widget": "",
-        "escalated": true,
-        "ms": 5070.790374999982,
-        "toolOk": true,
-        "widgetOk": true,
-        "confidentlyWrong": false
-      },
-      {
-        "tool": "none",
-        "toolP": 0.0528,
+        "tool": "weather.weather_archive",
+        "toolP": 1,
         "widget": "",
         "escalated": false,
-        "ms": 1562.3952079999726,
+        "ms": 528.4579999999842,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
-        "tool": "none",
-        "toolP": 0.0892,
+        "tool": "weather.air_quality",
+        "toolP": 1,
         "widget": "",
         "escalated": false,
-        "ms": 1497.0801669999491,
+        "ms": 671.7634580000304,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 526.6196249999921,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_prices",
+        "toolP": 0.99,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 519.1459170000162,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_market_chart",
+        "toolP": 1,
+        "widget": "line",
+        "escalated": false,
+        "ms": 525.407957999967,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_trending",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 523.9909169999883,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_list_markets",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 556.2417500000447,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "crypto.coingecko_get_global",
+        "toolP": 1,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 553.8032079999684,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getTopStories",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 549.5037080000038,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getShowHNStories",
+        "toolP": 0.98,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 559.3845419999561,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getAskHNStories",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 656.4128330000094,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getNewStories",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 580.242333000002,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getJobStories",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 742.0756249999977,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getBestStories",
+        "toolP": 1,
+        "widget": "table",
+        "escalated": false,
+        "ms": 543.304541999998,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "hackernews.getTopStories",
+        "toolP": 0.93,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 502.2468339999905,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "earthquakes.earthquake_get_feed",
+        "toolP": 0.7,
+        "widget": "",
+        "escalated": false,
+        "ms": 569.4528750000172,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "earthquakes.earthquake_search",
+        "toolP": 0.94,
+        "widget": "map",
+        "escalated": false,
+        "ms": 513.632042000012,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "worldbank.get-economic-data",
+        "toolP": 1,
+        "widget": "",
+        "escalated": false,
+        "ms": 607.3304999999818,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "worldbank.get-health-data",
+        "toolP": 0.9207000000000001,
+        "widget": "",
+        "escalated": false,
+        "ms": 534.410709000018,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "arxiv.arxiv_search",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 540.3152089999639,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "arxiv.arxiv_search",
+        "toolP": 1,
+        "widget": "feed",
+        "escalated": false,
+        "ms": 509.71208399999887,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
       },
       {
         "tool": "none",
-        "toolP": 0.033333333333333326,
+        "toolP": 0,
+        "widget": "table",
+        "escalated": false,
+        "ms": 267.3631249999744,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "bar",
+        "escalated": false,
+        "ms": 246.0932089999551,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0741,
+        "widget": "map",
+        "escalated": false,
+        "ms": 756.025250000006,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "line",
+        "escalated": false,
+        "ms": 285.02645800000755,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "stat",
+        "escalated": false,
+        "ms": 238.10875000001397,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
         "widget": "",
         "escalated": true,
-        "ms": 4530.728082999936,
+        "ms": 874.3855419999454,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.00714285714285715,
+        "widget": "",
+        "escalated": true,
+        "ms": 755.9402499999851,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.11,
+        "widget": "",
+        "escalated": false,
+        "ms": 513.6819169999799,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 274.2605420000036,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0.0693,
+        "widget": "",
+        "escalated": false,
+        "ms": 610.8746669999673,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 289.46891699999105,
+        "toolOk": true,
+        "widgetOk": true,
+        "confidentlyWrong": false
+      },
+      {
+        "tool": "none",
+        "toolP": 0,
+        "widget": "",
+        "escalated": false,
+        "ms": 265.5385000000242,
         "toolOk": true,
         "widgetOk": true,
         "confidentlyWrong": false
@@ -1375,7 +1626,7 @@
     {
       "message": "What's the weather in Berlin this week?",
       "expect": {
-        "tool": "weather.forecast",
+        "tool": "weather.weather_forecast",
         "widget": [
           "line"
         ]
@@ -1384,7 +1635,7 @@
     {
       "message": "show it as a table",
       "expect": {
-        "tool": "weather.forecast",
+        "tool": "weather.weather_forecast",
         "widget": [
           "table"
         ]
@@ -1393,55 +1644,56 @@
     {
       "message": "what about Tehran?",
       "expect": {
-        "tool": "weather.forecast",
+        "tool": "weather.weather_forecast",
         "widget": [
           "table"
         ]
       }
     },
     {
-      "message": "How has Apple stock done this year?",
-      "expect": {
-        "tool": "markets.stock_prices",
-        "widget": [
-          "line"
-        ]
-      }
-    },
-    {
-      "message": "compare it with Nvidia",
-      "expect": {
-        "tool": "markets.stock_prices",
-        "widget": [
-          "line"
-        ]
-      }
-    },
-    {
-      "message": "bar chart please",
-      "expect": {
-        "tool": "markets.stock_prices",
-        "widget": [
-          "bar"
-        ]
-      }
-    },
-    {
-      "message": "and for the last 5 days?",
-      "expect": {
-        "tool": "markets.stock_prices",
-        "widget": [
-          "bar"
-        ]
-      }
-    },
-    {
       "message": "bitcoin price right now",
       "expect": {
-        "tool": "markets.crypto_prices",
+        "tool": "crypto.coingecko_get_prices",
         "widget": [
           "stat",
+          "table"
+        ]
+      }
+    },
+    {
+      "message": "and ethereum?",
+      "expect": {
+        "tool": "crypto.coingecko_get_prices",
+        "widget": [
+          "stat",
+          "table"
+        ]
+      }
+    },
+    {
+      "message": "bitcoin price over the last 30 days",
+      "expect": {
+        "tool": "crypto.coingecko_get_market_chart",
+        "widget": [
           "line"
+        ]
+      }
+    },
+    {
+      "message": "top stories on Hacker News",
+      "expect": {
+        "tool": "hackernews.getTopStories",
+        "widget": [
+          "feed"
+        ]
+      }
+    },
+    {
+      "message": "as a table",
+      "expect": {
+        "tool": "hackernews.getTopStories",
+        "widget": [
+          "table"
         ]
       }
     },
@@ -1455,111 +1707,111 @@
   "convo": {
     "before": [
       {
-        "ms": 19965.832958000014,
-        "llm": 2,
-        "result": "forecast → line {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "ms": 7891.778749999998,
+        "llm": 4,
+        "result": "weather_forecast \u2192 line {\"latitude\":52.52,\"longitude\":13.405,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 16508.64812499995,
+        "ms": 11767.643958,
+        "llm": 2,
+        "result": "weather_forecast \u2192 table {\"latitude\":52.52,\"longitude\":13.405,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
+        "ok": true
+      },
+      {
+        "ms": 15008.259166000003,
+        "llm": 3,
+        "result": "geocoding \u2192 map {\"name\":\"Tehran\"}",
+        "ok": false
+      },
+      {
+        "ms": 14239.695041999978,
+        "llm": 3,
+        "result": "coingecko_get_prices \u2192 stat {\"ids\":[\"bitcoin\"],\"vs_currencies\":[\"usd\"]}",
+        "ok": true
+      },
+      {
+        "ms": 14170.614125000022,
+        "llm": 3,
+        "result": "coingecko_get_prices \u2192 stat {\"ids\":[\"bitcoin\",\"ethereum\"],\"vs_currencies\":[\"usd\"]}",
+        "ok": true
+      },
+      {
+        "ms": 15314.417666999972,
+        "llm": 3,
+        "result": "coingecko_get_market_chart \u2192 line {\"id\":\"bitcoin\",\"mode\":\"recent\",\"days\":30}",
+        "ok": true
+      },
+      {
+        "ms": 11204.11262499995,
+        "llm": 3,
+        "result": "getTopStories \u2192 feed {}",
+        "ok": true
+      },
+      {
+        "ms": 8615.293707999983,
+        "llm": 2,
+        "result": "getTopStories \u2192 table {}",
+        "ok": true
+      },
+      {
+        "ms": 5628.758417000005,
         "llm": 1,
-        "result": "forecast → table {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
-        "ok": true
-      },
-      {
-        "ms": 23340.456749999896,
-        "llm": 2,
-        "result": "forecast → table {\"cities\":[\"Berlin\",\"Tehran\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
-        "ok": true
-      },
-      {
-        "ms": 24301.55129099998,
-        "llm": 2,
-        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
-        "ok": true
-      },
-      {
-        "ms": 23124.072250000085,
-        "llm": 2,
-        "result": "stock_prices → line {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
-        "ok": true
-      },
-      {
-        "ms": 16950.489207999897,
-        "llm": 1,
-        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
-        "ok": true
-      },
-      {
-        "ms": 22434.63983400003,
-        "llm": 2,
-        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"5d\"}",
-        "ok": true
-      },
-      {
-        "ms": 19198.256167000043,
-        "llm": 2,
-        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
-        "ok": true
-      },
-      {
-        "ms": 17003.661375000025,
-        "llm": 1,
-        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
+        "result": "getTopStories \u2192 feed {}",
         "ok": false
       }
     ],
     "kev": [
       {
-        "ms": 10822.328833000036,
+        "ms": 28824.373583000037,
         "llm": 1,
-        "result": "forecast → line {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "result": "weather_forecast \u2192 line {\"latitude\":52.52,\"longitude\":13.405,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 2019.4803339999635,
+        "ms": 321.1191659999895,
         "llm": 0,
-        "result": "forecast → table {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "result": "weather_forecast \u2192 table {\"latitude\":52.52,\"longitude\":13.405,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 7723.013000000035,
+        "ms": 28502.61024999997,
         "llm": 1,
-        "result": "forecast → table {\"cities\":[\"Berlin\",\"Tehran\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "result": "weather_forecast \u2192 table {\"latitude\":35.6892,\"longitude\":51.389,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 8084.235958000063,
+        "ms": 4130.4941659999895,
         "llm": 1,
-        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "result": "coingecko_get_prices \u2192 stat {\"ids\":[\"bitcoin\"],\"vs_currencies\":[\"usd\"]}",
         "ok": true
       },
       {
-        "ms": 7411.46087499999,
+        "ms": 4729.518083000032,
         "llm": 1,
-        "result": "stock_prices → line {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "result": "coingecko_get_prices \u2192 stat {\"ids\":[\"bitcoin\",\"ethereum\"],\"vs_currencies\":[\"usd\"]}",
         "ok": true
       },
       {
-        "ms": 2218.5405829999363,
+        "ms": 5038.885666999966,
+        "llm": 1,
+        "result": "coingecko_get_market_chart \u2192 line {\"id\":\"bitcoin\",\"mode\":\"recent\",\"days\":30}",
+        "ok": true
+      },
+      {
+        "ms": 1676.2978330000187,
+        "llm": 1,
+        "result": "getTopStories \u2192 feed {}",
+        "ok": true
+      },
+      {
+        "ms": 266.88441699999385,
         "llm": 0,
-        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "result": "getTopStories \u2192 table {}",
         "ok": true
       },
       {
-        "ms": 6755.885790999979,
-        "llm": 1,
-        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"5d\"}",
-        "ok": true
-      },
-      {
-        "ms": 3082.857917000074,
-        "llm": 1,
-        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
-        "ok": true
-      },
-      {
-        "ms": 1790.8714580000378,
+        "ms": 283.6805840000161,
         "llm": 0,
         "result": "said: not a data request",
         "ok": true
@@ -1567,56 +1819,56 @@
     ],
     "hybrid": [
       {
-        "ms": 8825.069917000015,
+        "ms": 29047.353541999997,
         "llm": 1,
-        "result": "forecast → line {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "result": "weather_forecast \u2192 line {\"latitude\":52.52,\"longitude\":13.405,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 1941.7698749999981,
+        "ms": 319.73629199998686,
         "llm": 0,
-        "result": "forecast → table {\"cities\":[\"Berlin\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "result": "weather_forecast \u2192 table {\"latitude\":52.52,\"longitude\":13.405,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 24897.609832999995,
+        "ms": 31831.76225000003,
         "llm": 2,
-        "result": "forecast → table {\"cities\":[\"Berlin\",\"Tehran\"],\"days\":7,\"past\":false,\"metric\":\"temperature\"}",
+        "result": "weather_forecast \u2192 table {\"latitude\":35.6892,\"longitude\":51.389,\"daily\":[\"weather_code\",\"temperature_2m_max\",\"temperature_2m_min\",\"apparent_temperature_max\",\"apparent_temperature_min\",\"precipitation_sum\",\"precipitation_probability_max\",\"wind_speed_10m_max\",\"wind_gusts_10m_max\",\"wind_direction_10m_dominant\",\"sunrise\",\"sunset\",\"uv_index_max\"],\"forecast_days\":7}",
         "ok": true
       },
       {
-        "ms": 6969.840416999999,
+        "ms": 3472.8543340000324,
         "llm": 1,
-        "result": "stock_prices → line {\"symbols\":[\"AAPL\"],\"range\":\"1y\"}",
+        "result": "coingecko_get_prices \u2192 stat {\"ids\":[\"bitcoin\"],\"vs_currencies\":[\"usd\"]}",
         "ok": true
       },
       {
-        "ms": 11774.70845799998,
+        "ms": 7409.986374999979,
         "llm": 2,
-        "result": "stock_prices → line {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "result": "coingecko_get_prices \u2192 stat {\"ids\":[\"bitcoin\",\"ethereum\"],\"vs_currencies\":[\"usd\"]}",
         "ok": true
       },
       {
-        "ms": 1674.5592910000123,
+        "ms": 6175.722542000003,
+        "llm": 1,
+        "result": "coingecko_get_market_chart \u2192 line {\"id\":\"bitcoin\",\"mode\":\"recent\",\"days\":30}",
+        "ok": true
+      },
+      {
+        "ms": 3038.039416000014,
+        "llm": 1,
+        "result": "getTopStories \u2192 feed {}",
+        "ok": true
+      },
+      {
+        "ms": 346.83191599999554,
         "llm": 0,
-        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"1y\"}",
+        "result": "getTopStories \u2192 table {}",
         "ok": true
       },
       {
-        "ms": 11304.478749999893,
-        "llm": 2,
-        "result": "stock_prices → bar {\"symbols\":[\"AAPL\",\"NVDA\"],\"range\":\"5d\"}",
-        "ok": true
-      },
-      {
-        "ms": 3131.420167000033,
-        "llm": 1,
-        "result": "crypto_prices → stat {\"coins\":[\"bitcoin\"],\"days\":1}",
-        "ok": true
-      },
-      {
-        "ms": 5677.457834000001,
-        "llm": 1,
+        "ms": 352.51291599997785,
+        "llm": 0,
         "result": "said: not a data request",
         "ok": true
       }

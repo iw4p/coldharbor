@@ -1,29 +1,57 @@
 {
   "router": {
     "type": "hybrid",
-    "baseUrl": "http://127.0.0.1:8009"
+    "baseUrl": "https://api.typesafe.ai",
+    "model": "jev-latest",
+    "apiKey": "${JEV_API_KEY}"
   },
   "llm": {
-    "provider": "ollama",
-    "model": "qwen3.5:latest"
+    "provider": "openai",
+    "baseUrl": "https://api.groq.com/openai/v1",
+    "model": "qwen/qwen3.8-27b",
+    "apiKey": "${GROQ_API_KEY}"
   },
   "mcpServers": {
     "weather": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "sources/weather.ts"
+        "-y",
+        "open-meteo-mcp-server@2.5.0"
       ]
     },
-    "markets": {
-      "command": "node",
+    "crypto": {
+      "command": "npx",
       "args": [
-        "sources/markets.ts"
+        "-y",
+        "@cyanheads/coingecko-mcp-server@0.1.3"
       ]
     },
-    "news": {
-      "command": "node",
+    "hackernews": {
+      "command": "npx",
       "args": [
-        "sources/news.ts"
+        "-y",
+        "mcp-hacker-news@1.0.3"
+      ]
+    },
+    "earthquakes": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@cyanheads/earthquake-mcp-server@0.3.7"
+      ]
+    },
+    "worldbank": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "worldbank-mcp@1.0.1"
+      ]
+    },
+    "arxiv": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@cyanheads/arxiv-mcp-server@1.5.3"
       ]
     },
     "github": {

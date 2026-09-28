@@ -9,7 +9,7 @@ import type { Args, InputField, LLM, ToolInfo } from "./types.ts";
 export interface Filled { args: Args; dropped: string[]; missing: InputField[]; ms: number }
 
 /** What the LLM gets besides the message. `previous` are the focused tile's arguments when it's the same tool. */
-export interface Context { message: string; previous?: Args; known?: Args; me?: Args; contents?: string }
+export interface Context { message: string; previous?: Args; known?: Args; me?: Args; contents?: string; rejected?: string }
 
 export async function fill(tool: ToolInfo, c: Context, llm: LLM, s1: SystemOne): Promise<Filled> {
   const t0 = Date.now();
@@ -21,6 +21,7 @@ export async function fill(tool: ToolInfo, c: Context, llm: LLM, s1: SystemOne):
     Object.keys(known).length ? `Values used earlier in this conversation (use them when the message refers to the same thing or doesn't say): ${JSON.stringify(known)}` : "",
     c.me ? `The user is ${JSON.stringify(c.me)}. "my", "mine" and "me" refer to this user.` : "",
     c.contents ? `What this source contains (use only these names):\n${c.contents}` : "",
+    c.rejected ? `The server rejected your last arguments, so fix them: ${c.rejected}` : "",
   ].filter(Boolean);
   const args: Args = { ...c.previous };
   if (Object.keys(props).length) {
@@ -29,7 +30,7 @@ export async function fill(tool: ToolInfo, c: Context, llm: LLM, s1: SystemOne):
         `The arguments must match this JSON Schema:\n${JSON.stringify(tool.inputSchema)}\n` +
         `Reply with the arguments as a JSON object and nothing else. If the message doesn't mention a value, keep the previous value or use a sensible default. ` +
         `"what about X?", "and in X?" or "now X" means replace the previous value with X. ` +
-        `"compare with X", "X vs Y", "X and Y" or "add X" means include both.`,
+        `"compare with X", "X vs Y", "X and Y" or "add X" means include both; if the argument takes one value, give a list anyway.`,
       [...facts, "If a required value is unknown, leave it out rather than inventing one.",
         "If you write a query, return readable columns (names, titles) alongside any ids.", `Message: ${c.message}`].join("\n"),
     ));
@@ -53,9 +54,10 @@ async function ungrounded(tool: ToolInfo, args: Args, message: string, context: 
   const seen = (message + " " + JSON.stringify(context)).toLowerCase();
   const suspects = Object.entries(args).filter(([k, v]) => {
     if (v == null || v === "" || props[k]?.enum?.includes(v) || props[k]?.default === v) return false;
-    // Required numbers are ids (an issue number): invented ones look just as plausible as real ones.
-    // Optional numbers are usually conversions ("last 3 months" → days: 90) and are left alone.
-    if (typeof v === "number") return !!tool.inputSchema.required?.includes(k) && !new RegExp(`(^|\\D)${v}(\\D|$)`).test(seen);
+    // Required whole numbers are ids (an issue number): invented ones look just as plausible as real ones.
+    // Optional numbers are usually conversions ("last 3 months" → days: 90), and fractions are measurements
+    // (a city's latitude), so they're left alone.
+    if (typeof v === "number") return Number.isInteger(v) && !!tool.inputSchema.required?.includes(k) && !new RegExp(`(^|\\D)${v}(\\D|$)`).test(seen);
     const words = typeof v === "string" ? v.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3) : [];
     return words.length > 0 && !words.some((w) => seen.includes(w));
   }).map(([k]) => k);

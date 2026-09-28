@@ -13,7 +13,9 @@ export interface Case {
 }
 
 const G = "github.";
-const W = "weather.forecast", S = "markets.stock_prices", C = "markets.crypto_prices", X = "markets.exchange_rates", N = "news.search_news";
+const W = "weather.weather_forecast", WA = "weather.weather_archive", AQ = "weather.air_quality";
+const P = "crypto.coingecko_get_prices", CH = "crypto.coingecko_get_market_chart", TR = "crypto.coingecko_get_trending", MK = "crypto.coingecko_list_markets", GL = "crypto.coingecko_get_global";
+const H = "hackernews.", E = "earthquakes.", WB = "worldbank.", AX = "arxiv.";
 const c = (kind: Case["kind"], message: string, tool: string | string[], widget: string | string[] = ""): Case =>
   ({ kind, message, tool: [tool].flat(), widget: [widget].flat() });
 
@@ -21,23 +23,29 @@ export const CASES: Case[] = [
   c("direct", "What's the weather in Berlin this week?", W),
   c("direct", "will it rain in London tomorrow?", W),
   c("direct", "how cold will it get in Oslo this weekend", W),
-  c("direct", "weather in Berlin, Paris and Rome on a map", W, "map"),
   c("direct", "temperature in Tokyo for the next 10 days as a line chart", W, "line"),
-  c("direct", "How has Apple stock done this year?", S, ["", "line"]),
-  c("direct", "compare Tesla and Nvidia in a chart", S, ["line", "bar"]),
-  c("direct", "MSFT share price over the last 5 days as a table", S, "table"),
-  c("direct", "is Amazon stock up this month?", S),
-  c("direct", "bitcoin price right now", C, ["", "stat"]),
-  c("direct", "ETH vs SOL this month", C, ["", "line"]),
-  c("direct", "how much is one dogecoin worth", C, ["", "stat"]),
-  c("direct", "euro to dollar over the last 3 months as a table", X, "table"),
-  c("direct", "EUR to GBP rate", X, ["", "stat"]),
-  c("direct", "how many yen is one dollar", X, ["", "stat"]),
-  c("direct", "latest news about electric cars", N, ["", "feed"]),
-  c("direct", "what's happening with the elections in Brazil", N, ["", "feed"]),
-  c("direct", "headlines on AI regulation", N, ["", "feed"]),
-  c("direct", "any news about the earthquake in Japan", N, ["", "feed"]),
-  c("direct", "bar chart of news about OpenAI by country", N, "bar"),
+  c("direct", "weather in Paris as a table", W, "table"),
+  c("direct", "how warm was it in Rome last month?", [WA, W], ["", "line"]),
+  c("direct", "air quality in Delhi today", AQ),
+  c("direct", "bitcoin price right now", P, ["", "stat"]),
+  c("direct", "how much is one dogecoin worth", P, ["", "stat"]),
+  c("direct", "bitcoin price over the last 30 days", CH, ["", "line"]),
+  c("direct", "which coins are trending right now?", TR, ["", "table"]),
+  c("direct", "top 10 cryptocurrencies by market cap", MK, ["", "table"]),
+  c("direct", "how big is the whole crypto market?", [GL, MK], ["", "stat"]),
+  c("direct", "top stories on Hacker News", H + "getTopStories", ["", "feed"]),
+  c("direct", "latest Show HN posts", H + "getShowHNStories", ["", "feed"]),
+  c("direct", "what are people asking on Ask HN?", H + "getAskHNStories", ["", "feed"]),
+  c("direct", "newest Hacker News submissions", H + "getNewStories", ["", "feed"]),
+  c("direct", "Hacker News job postings", H + "getJobStories", ["", "feed"]),
+  c("direct", "best Hacker News stories as a table", H + "getBestStories", "table"),
+  c("direct", "bar chart of the top Hacker News stories by score", H + "getTopStories", "bar"),
+  c("direct", "big earthquakes this week", [E + "earthquake_get_feed", E + "earthquake_search"], ["", "map"]),
+  c("direct", "earthquakes near Tokyo this month on a map", E + "earthquake_search", "map"),
+  c("direct", "GDP of Germany since 2000", WB + "get-economic-data", ["", "line"]),
+  c("direct", "life expectancy in Japan", [WB + "get-health-data", WB + "get-social-data"], ["", "line"]),
+  c("direct", "latest papers on small language models", AX + "arxiv_search", ["", "feed"]),
+  c("direct", "find arXiv papers about diffusion models", AX + "arxiv_search", ["", "feed"]),
   // Cases for a GitHub MCP server (github-mcp-server). Only used when one is connected as "github".
   c("direct", "open pull requests in vercel/next.js", [G + "list_pull_requests", G + "search_pull_requests"]),
   c("direct", "latest commits on vercel/next.js", G + "list_commits"),
@@ -55,7 +63,7 @@ export const CASES: Case[] = [
   c("follow-up", "as a line graph", "none", "line"),
   c("follow-up", "just give me the number", "none", ["stat", ""]),
   c("follow-up", "what about Tehran?", ["none", W]),
-  c("follow-up", "compare it with Nvidia", ["none", S]),
+  c("follow-up", "compare it with ethereum", ["none", P, CH]),
   c("follow-up", "and for the last year?", "none"),
   c("off-topic", "tell me a joke", "none"),
   c("off-topic", "what's the capital of France", "none"),
@@ -68,11 +76,11 @@ export const CONVERSATION: { message: string; expect: { tool?: string; widget?: 
   { message: "What's the weather in Berlin this week?", expect: { tool: W, widget: ["line"] } },
   { message: "show it as a table", expect: { tool: W, widget: ["table"] } },
   { message: "what about Tehran?", expect: { tool: W, widget: ["table"] } },
-  { message: "How has Apple stock done this year?", expect: { tool: S, widget: ["line"] } },
-  { message: "compare it with Nvidia", expect: { tool: S, widget: ["line"] } },
-  { message: "bar chart please", expect: { tool: S, widget: ["bar"] } },
-  { message: "and for the last 5 days?", expect: { tool: S, widget: ["bar"] } },
-  { message: "bitcoin price right now", expect: { tool: C, widget: ["stat", "line"] } },
+  { message: "bitcoin price right now", expect: { tool: P, widget: ["stat", "table"] } },
+  { message: "and ethereum?", expect: { tool: P, widget: ["stat", "table"] } },
+  { message: "bitcoin price over the last 30 days", expect: { tool: CH, widget: ["line"] } },
+  { message: "top stories on Hacker News", expect: { tool: H + "getTopStories", widget: ["feed"] } },
+  { message: "as a table", expect: { tool: H + "getTopStories", widget: ["table"] } },
   { message: "tell me a joke", expect: { outcome: "say" } },
 ];
 

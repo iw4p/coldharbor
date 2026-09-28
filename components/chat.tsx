@@ -11,12 +11,11 @@ import { Button } from "@/components/ui/button";
 const EXAMPLES = [
   "What's the weather in Berlin this week?",
   "show it as a table",
-  "weather in Paris, Rome and Madrid on a map",
-  "How has Apple stock done this year?",
-  "compare it with Nvidia",
-  "bitcoin price right now",
-  "latest news about electric cars",
-  "EUR to USD and GBP over 3 months",
+  "bitcoin price over the last 30 days",
+  "which coins are trending right now?",
+  "top stories on Hacker News",
+  "latest Show HN posts",
+  "air quality in Delhi today",
 ];
 
 interface Props {
@@ -105,7 +104,7 @@ export function Trace({ steps }: { steps: Step[] }) {
     <ol className="space-y-1">
       {steps.map((s, i) => (
         <motion.li key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2 text-xs">
-          <span className="w-14 shrink-0 font-medium text-foreground/80">{s.who}</span>
+          <span className="w-20 shrink-0 truncate font-medium text-foreground/80">{s.who}</span>
           <span className="min-w-0 flex-1 break-words text-muted-foreground">{s.text}</span>
           {s.ms != null && <span className="shrink-0 tabular-nums text-muted-foreground/70">{s.ms < 1000 ? `${s.ms} ms` : `${(s.ms / 1000).toFixed(1)} s`}</span>}
         </motion.li>

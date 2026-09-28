@@ -10,6 +10,13 @@ import type { Args, JsonSchema, ToolInfo, ToolRunner } from "./types.ts";
 /** For servers that don't annotate their tools: names that only read. */
 const READ_NAME = /^(get|list|search|read|fetch|find|show|describe|query|lookup|view|count|browse|check|download|export)(_|-|[A-Z]|$)/i;
 
+/** "coingecko-mcp-server: get prices" → "Get prices", "getTopStories" → "Get top stories". */
+function readable(title: string) {
+  const t = title.replace(/^[\w.-]*mcp[\w.-]*:\s*/i, "");
+  const words = /\s/.test(t) ? t : t.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 const Content = z.array(z.object({ type: z.string(), text: z.string().optional(), resource: z.object({ text: z.string().optional() }).optional() })).catch([]);
 const Frames = z.object({ frames: z.array(Frame) });
 
@@ -95,7 +102,7 @@ export class McpHub implements ToolRunner {
             id: `${server}.${t.name}`,
             server,
             name: t.name,
-            title: t.title ?? a.title ?? t.name.replace(/[_-]/g, " "),
+            title: readable(t.title ?? a.title ?? t.name),
             description: t.description ?? "",
             serverInfo,
             inputSchema: t.inputSchema as JsonSchema,

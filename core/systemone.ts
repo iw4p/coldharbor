@@ -22,17 +22,20 @@ const map = <A, B>(o: Record<string, A>, f: (a: A, key: string) => B) => Object.
 
 const KevAnswers = z.object({ answers: z.record(z.string(), z.object({ noul: z.number().optional(), probabilities: z.record(z.string(), z.number()).optional() })) });
 
-/** Kev (https://github.com/jaredpalmer/kev): a small local decision model with calibrated probabilities, ~0.2 s a question. */
-export function kev({ baseUrl, apiKey }: { baseUrl: string; apiKey?: string }): SystemOne {
+/**
+ * A System One endpoint: Kev (https://github.com/jaredpalmer/kev), a small open model you run yourself, or Jev, hosted by
+ * TypeSafe (model "jev-latest"). Both answer with calibrated probabilities in a fraction of a second.
+ */
+export function kev({ baseUrl, model = "kev-latest", apiKey }: { baseUrl: string; model?: string; apiKey?: string }): SystemOne {
   return {
-    name: "Kev",
+    name: model.charAt(0).toUpperCase() + model.split("-")[0].slice(1),
     async decide(message, questions) {
       const res = await fetch(`${baseUrl}/v1/systemone`, {
         method: "POST",
         headers: { "content-type": "application/json", ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}) },
         body: JSON.stringify({
           state: message,
-          model: "kev-latest",
+          model,
           questions: map(questions, (q) => (typeof q === "string" ? { type: "noul", instructions: q } : { type: "choice", instructions: q.ask, criteria: q.options })),
         }),
       });
@@ -58,8 +61,11 @@ export function llmDecider(llm: LLM): SystemOne {
       return map(questions, (q, k) => {
         // Small models answer true or "true" (or "yes") about equally often.
         if (typeof q === "string") return { yes: /^(true|yes)$/i.test(String(out[k])) ? 0.9 : 0.1 };
-        const ids = Object.keys(q.options), p = Math.max(0, Math.min(1, Number(out[`${k}_confidence`] ?? 0.8)));
-        return Object.fromEntries(ids.map((id) => [id, id === String(out[k] ?? "none") ? p : (1 - p) / ids.length]));
+        // Asked for {"tool": "<id>"}, small models answer just as often with {"<id>": true}.
+        const ids = Object.keys(q.options), yes = (v: unknown) => /^(true|yes|1)$/i.test(String(v));
+        const pick = ids.includes(String(out[k])) ? String(out[k]) : (ids.find((id) => yes(out[id])) ?? "none");
+        const p = Math.max(0, Math.min(1, Number(out[`${k}_confidence`] ?? out[`${pick}_confidence`] ?? 0.8)));
+        return Object.fromEntries(ids.map((id) => [id, id === pick ? p : (1 - p) / ids.length]));
       });
     },
   };

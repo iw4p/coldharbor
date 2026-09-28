@@ -22,7 +22,7 @@ export function createLLM(cfg: Config["llm"]): LLM {
   const ollama = cfg.provider === "ollama";
   const url = ollama ? `${cfg.baseUrl ?? "http://127.0.0.1:11434"}/api/chat` : `${cfg.baseUrl ?? "https://api.openai.com/v1"}/chat/completions`;
   return {
-    name: cfg.model.split(":")[0],
+    name: cfg.model.split("/").at(-1)!.split(":")[0],
     async json(system, user) {
       const messages = [{ role: "system", content: system }, { role: "user", content: user }];
       const init = {
@@ -30,10 +30,15 @@ export function createLLM(cfg: Config["llm"]): LLM {
         headers: { "content-type": "application/json", ...(cfg.apiKey ? { authorization: `Bearer ${cfg.apiKey}` } : {}) },
         body: JSON.stringify(ollama
           ? { model: cfg.model, messages, stream: false, think: false, format: "json", options: { temperature: 0 } }
-          : { model: cfg.model, messages, temperature: 0, response_format: { type: "json_object" } }),
+          : { model: cfg.model, messages, temperature: 0, max_tokens: 512, response_format: { type: "json_object" } }),
       };
-      // One retry on network failures: a model reloading under memory pressure can drop a connection.
-      const res = await fetch(url, init).catch(async () => (await new Promise((r) => setTimeout(r, 1000)), fetch(url, init)));
+      // One retry on network failures (a model reloading can drop a connection) and on rate limits (hosted APIs).
+      const wait = (s: number) => new Promise((r) => setTimeout(r, Math.min(20, s) * 1000));
+      const send = () => fetch(url, init).catch(async () => (await wait(1), fetch(url, init)));
+      let res = await send();
+      for (let i = 0; res.status === 429 && i < 3; i++) res = (await wait(Number(res.headers.get("retry-after")) || 2), await send());
+      // Groq's JSON mode now and then gives up on a generation; a second try usually works.
+      if (res.status === 400 && (await res.clone().text()).includes("json_validate_failed")) res = await send();
       if (!res.ok) throw new Error(`${url} returned ${res.status}: ${await res.text()}`);
       const body = await res.json();
       return parseJson(ollama ? Ollama.parse(body).message.content : OpenAI.parse(body).choices[0].message.content);

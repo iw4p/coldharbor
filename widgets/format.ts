@@ -15,7 +15,7 @@ export const fmtCompact = (v: number) => (Math.abs(v) >= 10_000 ? compact.format
 
 /** "Sep 24" for dates, "Sep 24 14:00" for hours. */
 export function fmtTime(v: Value | undefined): string {
-  if (typeof v !== "string") return String(v ?? "");
+  if (typeof v !== "string" || /^\d{4}$/.test(v)) return String(v ?? ""); // a year stays a year
   const d = new Date(v.length === 10 ? `${v}T00:00:00` : v);
   if (Number.isNaN(+d)) return v;
   const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });

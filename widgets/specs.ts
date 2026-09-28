@@ -49,7 +49,7 @@ export const specs: WidgetSpec[] = [
   {
     id: "detail",
     name: "Details",
-    ask: "Does the message ask for the details of one specific item?",
+    ask: "Does the message ask to open the full details of one specific record, like an issue, a paper or a person?",
     score: (f) => (f.rows.length === 1 && f.fields.length >= 3 ? 0.8 : 0),
   },
   {

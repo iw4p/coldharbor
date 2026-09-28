@@ -21,6 +21,8 @@ export const THRESHOLDS = {
   followUp: 0.33,
   /** Above this, System One is confident no tool fits, so there's no second opinion. */
   offTopic: 0.85,
+  /** Below this, the message doesn't name any tool ("as a table"), so a view request only changes the view. */
+  named: 0.1,
 };
 
 export interface Route {
@@ -94,7 +96,7 @@ export async function route(message: string, tools: ToolInfo[], widgets: WidgetS
   }
 
   const widgetP = Object.fromEntries(widgets.map((w) => [w.id, yes(a, `widget:${w.id}`)]));
-  const viewOnly = Math.max(0, ...Object.values(widgetP)) >= THRESHOLDS.viewOnly && yes(a, "subject") < THRESHOLDS.subject;
+  const viewOnly = Math.max(0, ...Object.values(widgetP)) >= THRESHOLDS.viewOnly && yes(a, "subject") < THRESHOLDS.subject && (best[0]?.p ?? 0) < THRESHOLDS.named;
   // System One's top guess is usually right even when it isn't sure (confidence spreads across similar tools), so a
   // second opinion on its shortlist is cheap and worth it. Not when it's sure, the message only changes the view, or nothing fits.
   const shortlist = best.slice(0, 6).map((t) => t.id);

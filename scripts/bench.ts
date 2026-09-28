@@ -2,8 +2,8 @@
  * `pnpm bench [before|kev|hybrid]`: who answers System One's questions, and what it does to accuracy and time.
  *
  *   before  the LLM answers them (which tool, which view, is it a follow-up?), then fills in the arguments
- *   kev     Kev answers them; the LLM only fills in arguments, and is skipped when a message only changes the view
- *   hybrid  Kev answers them, and the LLM chooses from Kev's shortlist when Kev is unsure which tool is meant
+ *   kev     System One (Kev or Jev) answers them; the LLM only fills in arguments, and is skipped when a message only changes the view
+ *   hybrid  System One answers them, and the LLM chooses from its shortlist when it's unsure which tool is meant
  *
  * Everything else (the questions, engine, thresholds, MCP sources, widgets, LLM) is identical.
  * Writes docs/benchmark.md and docs/benchmark.json next to the config.
@@ -22,7 +22,8 @@ import { specs } from "../widgets/specs.ts";
 import { casesFor, CONVERSATION, type Case } from "./cases.ts";
 
 const { config, root } = loadConfig();
-const kevUrl = config.router.type !== "llm" ? config.router.baseUrl : "http://127.0.0.1:8009";
+const one = config.router.type !== "llm" ? config.router : { baseUrl: "http://127.0.0.1:8009" };
+const kevUrl = one.baseUrl;
 const hub = new McpHub(config.mcpServers, root);
 const tools = await hub.list();
 const CASES = casesFor(tools.map((t) => t.id));
@@ -31,12 +32,24 @@ const CASES = casesFor(tools.map((t) => t.id));
 const base = createLLM(config.llm);
 let llmCalls = 0;
 const llm: LLM = { name: base.name, json: (s, u) => (llmCalls++, base.json(s, u)) };
-const K = kev({ baseUrl: kevUrl }), L = llmDecider(llm);
+// Every answer System One gives is printed as it happens, so a run can be followed live.
+const pc = (p: number) => `${Math.round(p * 100)}%`;
+const loud = (s: SystemOne): SystemOne => ({
+  name: s.name,
+  async decide(message, questions, context) {
+    const a = await s.decide(message, questions, context);
+    const said = Object.entries(a).map(([k, o]) => ("yes" in o ? (o.yes >= 0.5 ? `${k} yes ${pc(o.yes)}` : "")
+      : `${k}: ${Object.entries(o).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([id, p]) => `${id} ${pc(p)}`).join(", ")}`));
+    console.log(`      ${s.name} → ${said.filter(Boolean).join(" · ")}`);
+    return a;
+  },
+});
+const K = loud(kev(one)), L = loud(llmDecider(llm));
 
 const variants: { key: string; label: string; s1: SystemOne; second?: SystemOne }[] = [
   { key: "before", label: `Before: ${base.name} answers`, s1: L },
-  { key: "kev", label: "Kev answers", s1: K },
-  { key: "hybrid", label: `Kev + ${base.name} when unsure`, s1: K, second: L },
+  { key: "kev", label: `${K.name} answers`, s1: K },
+  { key: "hybrid", label: `${K.name} + ${base.name} when unsure`, s1: K, second: L },
 ].filter((v) => !process.argv[2] || v.key === process.argv[2]);
 
 const pct = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : "–");
@@ -53,17 +66,22 @@ function decide(d: Route) {
 type Row = ReturnType<typeof decide> & { ms: number; toolOk: boolean; widgetOk: boolean; confidentlyWrong: boolean };
 const routing: Record<string, Row[]> = {};
 for (const v of variants) {
-  process.stdout.write(`\n${v.label}: routing ${CASES.length} messages `);
+  console.log(`\n${v.label}: routing ${CASES.length} messages`);
   await route("warm up", tools, specs, v.s1, v.second); // load models; not timed
   routing[v.key] = [];
-  for (const c of CASES) {
+  for (const [i, c] of CASES.entries()) {
+    console.log(`  ${i + 1}/${CASES.length} "${c.message}" (expected ${c.tool.join(" or ")})`);
     const t0 = performance.now();
-    const r = decide(await route(c.message, tools, specs, v.s1, v.second));
+    // A failed message (a server or API error) counts as a miss instead of ending the run.
+    const r = decide(await route(c.message, tools, specs, v.s1, v.second).catch((e) => {
+      console.log(`    error: ${e.message.slice(0, 160)}`);
+      return { by: "error", ms: 0, tools: [], shortlist: [], none: 1, widgets: {}, subject: 0, followUp: 0, aboutMe: 0 };
+    }));
     const ms = performance.now() - t0;
     const toolOk = c.tool.includes(r.tool);
     // Acting on the wrong source fetches wrong data. Deferring ("none") only means the UI asks.
     routing[v.key].push({ ...r, ms, toolOk, widgetOk: c.widget.includes(r.widget), confidentlyWrong: r.tool !== "none" && !toolOk });
-    process.stdout.write(toolOk ? "." : "x");
+    console.log(`    ${toolOk ? "✓" : "✗"} ${r.tool} ${pc(r.toolP)}${r.widget ? ` · view ${r.widget}` : ""}${r.escalated ? " · the LLM chose" : ""} · ${secs(ms)}`);
   }
 }
 
@@ -71,14 +89,16 @@ for (const v of variants) {
 type Turn = { ms: number; llm: number; result: string; ok: boolean };
 const convo: Record<string, Turn[]> = {};
 for (const v of variants) {
-  process.stdout.write(`\n${v.label}: conversation `);
+  console.log(`\n${v.label}: conversation`);
   convo[v.key] = [];
   let focus: Tile | undefined;
   for (const turn of CONVERSATION) {
     const calls0 = llmCalls, t0 = performance.now();
     let result = "", tool: string | undefined, widget: string | undefined, outcome = "";
     try {
+      console.log(`  turn "${turn.message}"`);
       for await (const e of ask({ message: turn.message, focus }, { s1: v.s1, second: v.second, llm, tools: hub, widgets: specs })) {
+        if (e.type === "step") console.log(`    ${e.step.who}: ${e.step.text.slice(0, 180)}`);
         if (e.type === "tile") {
           focus = e.tile;
           [tool, widget, outcome] = [e.tile.toolId, e.tile.widget, "tile"];
@@ -94,13 +114,15 @@ for (const v of variants) {
     const x = turn.expect;
     const ok = x.outcome ? outcome === x.outcome : outcome === "tile" && tool === x.tool && !!widget && !!x.widget?.includes(widget);
     convo[v.key].push({ ms: performance.now() - t0, llm: llmCalls - calls0, result, ok });
-    process.stdout.write(ok ? "." : "x");
+    console.log(`    ${ok ? "✓" : "✗"} ${result.slice(0, 160)} · ${secs(performance.now() - t0)}`);
   }
 }
 await hub.close();
 
 // ── Report ──────────────────────────────────────────────────────────────────────
-const kevInfo = await fetch(`${kevUrl}/v1/models`).then((r) => r.json()).then((j) => j.models?.[0]).catch(() => null);
+const kevInfo = await fetch(`${kevUrl}/v1/models`, { headers: "apiKey" in one && one.apiKey ? { authorization: `Bearer ${one.apiKey}` } : {} })
+  .then((r) => r.json()).then((j) => j.models?.[0] ?? j.data?.[0]).catch(() => null);
+const S1 = K.name;
 const S = Object.fromEntries(variants.map((v) => {
   const rows = routing[v.key], turns = convo[v.key];
   const ms = rows.map((r) => r.ms);
@@ -124,20 +146,20 @@ const keys = variants.map((v) => v.key);
 const row = (label: string, f: (s: (typeof S)[string]) => string) => `| ${label} | ${keys.map((k) => f(S[k])).join(" | ")} |`;
 const speedup = (k: string, field: "p50" | "convoMs") => (k === "before" || !S.before ? "" : ` (${(S.before[field] / S[k][field]).toFixed(1)}× faster)`);
 
-const md = `# Benchmark: routing with and without Kev (System One)
+const md = `# Benchmark: routing with and without ${S1} (System One)
 
 ColdHarbor turns a message into *which tool* and *which widget*, then an LLM fills in the tool's arguments. This compares three ways to answer those quick questions:
 
 - **Before:** ${base.name} (a local ${config.llm.model} via ${config.llm.provider}) answers the quick questions for every message: which tool, which view, is it a follow-up, did it make a value up?
-- **Kev:** [Kev](https://github.com/jaredpalmer/kev)'s System One model answers them; ${base.name} only fills in arguments, and is skipped when a message only changes the view.
-- **Kev + ${base.name} (hybrid, the default):** Kev answers them, and ${base.name} chooses from Kev's shortlist only when Kev is unsure which tool is meant. View requests always come from Kev.
+- **${S1}:** the System One model (\`${"model" in one ? one.model : "kev-latest"}\` at ${kevUrl}) answers them; ${base.name} only fills in arguments, and is skipped when a message only changes the view.
+- **${S1} + ${base.name} (hybrid, the default):** ${S1} answers them, and ${base.name} chooses from ${S1}'s shortlist only when ${S1} is unsure which tool is meant. View requests always come from ${S1}.
 
 All three get exactly the same questions, with the same options.
 
 Everything else is identical: the engine, the thresholds (act on a tool at ≥ ${THRESHOLDS.tool * 100}%, treat a view request as explicit at ≥ ${THRESHOLDS.viewOnly * 100}%), the MCP sources and the widgets.
 
-Run on ${new Date().toISOString().slice(0, 10)} · ${os.cpus()[0]?.model ?? os.arch()} · ${Math.round(os.totalmem() / 2 ** 30)} GB RAM · Kev \`${kevInfo?.run ?? "?"}\` (${kevInfo?.backend ?? "?"} ${kevInfo?.dtype ?? ""}) · ${tools.length} tools from ${new Set(tools.map((t) => t.server)).size} MCP servers · ${specs.length} widgets.
-Reproduce with \`pnpm bench\` (needs Kev on ${kevUrl} and the LLM running). Raw numbers: \`docs/benchmark.json\`.
+Run on ${new Date().toISOString().slice(0, 10)} · ${os.cpus()[0]?.model ?? os.arch()} · ${Math.round(os.totalmem() / 2 ** 30)} GB RAM · ${S1} \`${kevInfo?.run ?? kevInfo?.id ?? kevInfo?.name ?? "?"}\` (${kevInfo?.backend ?? "?"} ${kevInfo?.dtype ?? ""}) · ${tools.length} tools from ${new Set(tools.map((t) => t.server)).size} MCP servers · ${specs.length} widgets.
+Reproduce with \`pnpm bench\` (needs ${S1} at ${kevUrl} and the LLM running). Raw numbers: \`docs/benchmark.json\`.
 
 ## Summary
 
@@ -190,7 +212,7 @@ ${CONVERSATION.map((t, i) => {
 
 - ${CASES.length} hand-labelled messages (\`scripts/cases.ts\`): ${CASES.filter((c) => c.kind === "direct").length} direct requests across ${tools.length} tools, ${CASES.filter((c) => c.kind === "follow-up").length} follow-ups that only make sense with a previous tile, ${CASES.filter((c) => c.kind === "off-topic").length} off-topic messages. Some accept more than one answer (e.g. "compare it with Nvidia" may name the stock tool or defer to the current tile).
 - Each variant is warmed up once (model loading not timed), then routes every message once. Both models run at temperature 0.
-- The LLM's confidence is self-reported; Kev's is a calibrated probability.
+- The LLM's confidence is self-reported; ${S1}'s is a calibrated probability.
 - Wall-clock times on one machine with both models loaded. The conversation includes real API calls (Open-Meteo, Yahoo Finance, CoinGecko), identical for every variant.
 - Small test set: treat differences of one or two messages as noise.
 `;
@@ -198,6 +220,6 @@ ${CONVERSATION.map((t, i) => {
 const dir = join(root, "docs");
 mkdirSync(dir, { recursive: true });
 writeFileSync(join(dir, "benchmark.md"), md);
-writeFileSync(join(dir, "benchmark.json"), JSON.stringify({ date: new Date().toISOString(), llm: config.llm, kev: kevInfo?.run, summary: S, cases: CASES, routing, conversation: CONVERSATION, convo }, null, 2));
+writeFileSync(join(dir, "benchmark.json"), JSON.stringify({ date: new Date().toISOString(), llm: { ...config.llm, apiKey: undefined }, kev: kevInfo?.run, summary: S, cases: CASES, routing, conversation: CONVERSATION, convo }, null, 2));
 console.log(`\n\n${md.split("## By kind")[0]}\nWrote docs/benchmark.md and docs/benchmark.json`);
 process.exit(0);
