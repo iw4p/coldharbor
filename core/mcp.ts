@@ -17,6 +17,14 @@ function readable(title: string) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+/** An error a server passed through from its upstream can be a whole HTML page (a Cloudflare 520): keep its title. */
+function brief(text: string) {
+  if (!/<(!doctype|html|head|body)\b/i.test(text)) return text;
+  const title = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1];
+  const words = (title ?? text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+  return `${text.slice(0, text.search(/<(!doctype|html|head|body)\b/i)).trim()} ${words.slice(0, 200)}`.trim();
+}
+
 const Content = z.array(z.object({ type: z.string(), text: z.string().optional(), resource: z.object({ text: z.string().optional() }).optional() })).catch([]);
 const Frames = z.object({ frames: z.array(Frame) });
 
@@ -127,7 +135,7 @@ export class McpHub implements ToolRunner {
     const texts = content.filter((c) => c.type === "text" && c.text).map((c) => c.text!);
     const resources = content.filter((c) => c.type === "resource" && c.resource?.text).map((c) => c.resource!.text!);
     const text = (resources.length && texts.join("").length < 300 ? resources : [...texts, ...resources]).join("\n");
-    if (res.isError) throw new Error(text || `${toolId} failed`);
+    if (res.isError) throw new Error(brief(text) || `${toolId} failed`);
     // ColdHarbor sources return { frames }; anything else is converted as well as it can be.
     const own = Frames.safeParse(res.structuredContent);
     return own.success ? own.data.frames : inferFrames(res.structuredContent ?? text, toolId.slice(dot + 1));

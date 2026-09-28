@@ -4,7 +4,7 @@
 
 ![ColdHarbor answering six questions with six third-party MCP servers: a weather line chart, the same data as a table, bitcoin vs ethereum, earthquakes on a map, GDP of Germany vs France, and arXiv papers](docs/screenshots/demo.gif)
 
-ColdHarbor is a proof of two ideas:
+ColdHarbor is a proof of three ideas:
 
 1. **Let a "System One" model make the quick choices, and the LLM only the ones that need language.**
    A decision model ([Jev](https://docs.typesafe.ai/api), hosted, or [Kev](https://github.com/jaredpalmer/kev), 0.8B,
@@ -12,8 +12,14 @@ ColdHarbor is a proof of two ideas:
    picks from its shortlist when it's unsure. On 38 messages to six third-party MCP servers, compared with the same LLM
    answering the same questions itself: 74% → 95% routed right, 7.8 s → 0.54 s median ([results](#results)).
 2. **Answers should be interfaces, not paragraphs.** The UI is inferred from the shape of whatever data an MCP server
-   returns (charts, maps, tables, cards), with no per-server code. Follow-ups like "as a table" re-render without
-   calling the LLM.
+   returns (charts, maps, tables, headlines, cards), with no per-server code. Follow-ups like "as a table" re-render
+   without calling the LLM.
+3. **System One runs the harness, not an agent loop.** There is no plan, act, observe loop. After each message System
+   One says what's going on and what comes next: is this a follow-up to the tile on screen, only a view change, about
+   the user themself, or nothing to do at all; did the LLM make an argument up; is anything still missing. The engine
+   acts on those answers, and the LLM is called once to write the arguments (plus a second opinion or a fix when
+   needed). That's what makes a small model enough: in the benchmark's 9-message conversation, 8 LLM calls in all, and
+   "show it as a table" takes 0.3 s with none.
 
 In practice it's a chat-driven dashboard. Plug in any [MCP](https://modelcontextprotocol.io) server, and when you ask
 "weather in Berlin this week" or "compare bitcoin and ethereum over the last 30 days", it picks the right tool, fills in
@@ -48,6 +54,7 @@ When you build a feature, check it against these:
 - **Read-only runs itself; writes need a click.** Respect tool annotations; when a server gives none, only clearly
   read-only names (`get_…`, `list_…`, `search_…`) run on their own.
 - **Small models + System One over one big model.** Fast calibrated decisions first, the LLM only where it's needed.
+- **No agent loop.** System One decides what happened and what's next; the LLM writes, once.
 - **Show why.** Every step the engine takes should be visible to the user.
 
 ## Results

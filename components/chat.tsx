@@ -130,7 +130,7 @@ function RunView({ run, running, busy, focus, send, onShowTile }: { run: Run; ru
       {(last?.type === "say" || last?.type === "error") && (
         <div className={cn("flex gap-2 rounded-lg px-3 py-2 text-sm", last.type === "error" ? "bg-destructive/10 text-destructive" : "bg-muted")}>
           {last.type === "error" && <CircleAlert className="mt-0.5 size-4 shrink-0" />}
-          {last.type === "error" ? last.message : last.text}
+          <span className={cn("min-w-0 break-words", last.type === "error" && "line-clamp-4")}>{last.type === "error" ? last.message : last.text}</span>
         </div>
       )}
       {last?.type === "confirm" && (
